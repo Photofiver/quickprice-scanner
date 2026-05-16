@@ -33,22 +33,20 @@
                 scanner.stop();
                 document.getElementById('reader').style.display = 'none';
 
-                // Wyszukiwania po zeskanowanym kodzie
+                // 1. Wyszukiwanie po zeskanowanym kodzie
                 window.open(`https://uk.webuy.com/search?stext=${encodeURIComponent(code)}`, '_blank');
                 window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(code)}`, '_blank');
                 window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(code)}&LH_Sold=1&LH_Complete=1`, '_blank');
 
-                // Dodatkowe wyszukiwania po popularnych modelach (lepsze wyniki na CEX i eBay Sold)
+                // 2. Dodatkowe wyszukiwania po popularnych modelach Xbox (lepsze wyniki na CEX i eBay Sold)
                 setTimeout(() => {
-                    // eBay Sold - modele
-                    window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=Xbox+One&LH_Sold=1&LH_Complete=1`, '_blank');
-                    window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=Xbox+Series+X&LH_Sold=1&LH_Complete=1`, '_blank');
-                    window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=Xbox+Series+S&LH_Sold=1&LH_Complete=1`, '_blank');
-
-                    // CEX - modele (lepsze wyniki niż po numerze seryjnym)
                     window.open(`https://uk.webuy.com/search?stext=Xbox+One`, '_blank');
                     window.open(`https://uk.webuy.com/search?stext=Xbox+Series+X`, '_blank');
                     window.open(`https://uk.webuy.com/search?stext=Xbox+Series+S`, '_blank');
+
+                    window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=Xbox+One&LH_Sold=1&LH_Complete=1`, '_blank');
+                    window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=Xbox+Series+X&LH_Sold=1&LH_Complete=1`, '_blank');
+                    window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=Xbox+Series+S&LH_Sold=1&LH_Complete=1`, '_blank');
                 }, 900);
 
                 document.getElementById('result').innerHTML = 
