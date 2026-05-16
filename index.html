@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Barcode Scanner</title>
+<title>Barcode + Serial Scanner</title>
 <script src="https://unpkg.com/html5-qrcode"></script>
 <style>
     body { font-family: system-ui, sans-serif; text-align: center; padding: 20px; background: #f8f9fa; }
@@ -12,8 +12,8 @@
 </style>
 </head>
 <body>
-    <h1>Barcode Scanner</h1>
-    <p>Zeskanuj kod kreskowy</p>
+    <h1>Barcode + Serial Scanner</h1>
+    <p>Zeskanuj kod kreskowy lub numer seryjny</p>
     <button id="start">SKANUJ</button>
     <div id="reader" style="display:none;"></div>
     <div id="result"></div>
@@ -26,7 +26,11 @@
         const scanner = new Html5Qrcode("reader");
         scanner.start(
             { facingMode: "environment" },
-            { fps: 10, qrbox: 280 },
+            { 
+                fps: 8,           // niższe FPS = lepsza detekcja małych kodów
+                qrbox: 300,
+                aspectRatio: 1.0
+            },
             (code) => {
                 scanner.stop();
                 document.getElementById('reader').style.display = 'none';
@@ -39,7 +43,9 @@
                 document.getElementById('result').innerHTML = 
                     `Zeskanowano: <b>${code}</b><br>Otwarto CEX + eBay + eBay Sold`;
             },
-            () => {}
+            (errorMessage) => {
+                // można dodać logowanie błędów jeśli potrzeba
+            }
         );
     };
 </script>
