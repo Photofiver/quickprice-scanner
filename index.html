@@ -18,7 +18,7 @@
     <button id="start">SKANUJ KOD</button>
     <div id="reader" style="display:none;"></div>
     <div id="result"></div>
-    <p class="tip">Przytrzymaj telefon blisko naklejki z numerem seryjnym</p>
+    <p class="tip">Przytrzymaj telefon blisko naklejki</p>
 
 <script>
     document.getElementById('start').onclick = () => {
@@ -28,21 +28,25 @@
         const scanner = new Html5Qrcode("reader");
         scanner.start(
             { facingMode: "environment" },
-            { 
-                fps: 6,              // niższe FPS = lepsza detekcja małych kodów
-                qrbox: 320,
-                aspectRatio: 1.0
-            },
+            { fps: 6, qrbox: 320 },
             (code) => {
                 scanner.stop();
                 document.getElementById('reader').style.display = 'none';
 
+                // 1. Wyszukiwanie po zeskanowanym kodzie
                 window.open(`https://uk.webuy.com/search?stext=${encodeURIComponent(code)}`, '_blank');
                 window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(code)}`, '_blank');
                 window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(code)}&LH_Sold=1&LH_Complete=1`, '_blank');
 
+                // 2. Dodatkowe wyszukiwania po popularnych modelach Xbox (lepsze wyniki na sprzedanych)
+                setTimeout(() => {
+                    window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=Xbox+One&LH_Sold=1&LH_Complete=1`, '_blank');
+                    window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=Xbox+Series+X&LH_Sold=1&LH_Complete=1`, '_blank');
+                    window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=Xbox+Series+S&LH_Sold=1&LH_Complete=1`, '_blank');
+                }, 800);
+
                 document.getElementById('result').innerHTML = 
-                    `Zeskanowano: <b>${code}</b><br>Otwarto CEX + eBay + eBay Sold`;
+                    `Zeskanowano: <b>${code}</b><br>Otwarto wyszukiwania + popularne modele Xbox`;
             },
             () => {}
         );
