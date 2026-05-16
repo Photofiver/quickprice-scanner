@@ -10,6 +10,24 @@
     button { background: #0066ff; color: white; border: none; padding: 22px 70px; font-size: 22px; border-radius: 14px; margin: 30px 0; }
     #reader { width: 100%; max-width: 500px; margin: 0 auto; }
     .tip { font-size: 14px; color: #666; margin-top: 10px; }
+    .search-section { margin-top: 12px; border-top: 1px solid #ddd; padding-top: 10px; }
+    .section-title { font-size: 0.9rem; font-weight: bold; color: #333; margin-bottom: 6px; text-align: left; }
+    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn { 
+        display: inline-block; 
+        padding: 10px 14px; 
+        color: white; 
+        text-decoration: none; 
+        font-weight: bold; 
+        border-radius: 8px; 
+        font-size: 0.85rem; 
+        flex: 1; 
+        min-width: 70px; 
+        text-align: center;
+    }
+    .btn-cex { background: #e74c3c; }
+    .btn-ebay { background: #0064d2; }
+    .btn-fb { background: #1877F2; }
 </style>
 </head>
 <body>
@@ -33,45 +51,31 @@
                 scanner.stop();
                 document.getElementById('reader').style.display = 'none';
 
-                // 1. Wyszukiwanie po zeskanowanym kodzie
-                window.open(`https://uk.webuy.com/search?stext=${encodeURIComponent(code)}`, '_blank');
-                window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(code)}`, '_blank');
-                window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(code)}&LH_Sold=1&LH_Complete=1`, '_blank');
+                let html = `<strong>Zeskanowano:</strong> ${code}<br><br>`;
 
-                // 2. Szeroki zestaw popularnych modeli (Xbox + PlayStation + Nintendo + retro)
-                setTimeout(() => {
-                    // Xbox
-                    window.open(`https://uk.webuy.com/search?stext=Xbox+One`, '_blank');
-                    window.open(`https://uk.webuy.com/search?stext=Xbox+Series+X`, '_blank');
-                    window.open(`https://uk.webuy.com/search?stext=Xbox+Series+S`, '_blank');
-                    window.open(`https://uk.webuy.com/search?stext=Xbox+360`, '_blank');
+                // Surowy kod
+                const encoded = encodeURIComponent(code);
+                html += `<div class="search-section"><div class="section-title">Wyszukiwanie po kodzie</div>`;
+                html += `<div class="btn-group">`;
+                html += `<a href="https://uk.webuy.com/search?stext=${encoded}" target="_blank" class="btn btn-cex">CeX</a>`;
+                html += `<a href="https://www.ebay.co.uk/sch/i.html?_nkw=${encoded}" target="_blank" class="btn btn-ebay">eBay</a>`;
+                html += `<a href="https://www.ebay.co.uk/sch/i.html?_nkw=${encoded}&LH_Sold=1&LH_Complete=1" target="_blank" class="btn btn-ebay">eBay Sold</a>`;
+                html += `</div></div>`;
 
-                    window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=Xbox+One&LH_Sold=1&LH_Complete=1`, '_blank');
-                    window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=Xbox+Series+X&LH_Sold=1&LH_Complete=1`, '_blank');
-                    window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=Xbox+Series+S&LH_Sold=1&LH_Complete=1`, '_blank');
-                    window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=Xbox+360&LH_Sold=1&LH_Complete=1`, '_blank');
+                // Popularne modele
+                const models = ["Xbox Series X", "Xbox Series S", "Xbox One", "PS5", "PS4", "Nintendo Switch"];
+                html += `<div class="search-section"><div class="section-title">Popularne modele</div><div class="btn-group">`;
+                
+                models.forEach(model => {
+                    const m = encodeURIComponent(model);
+                    html += `<a href="https://uk.webuy.com/search?stext=${m}" target="_blank" class="btn btn-cex">${model} (CeX)</a>`;
+                    html += `<a href="https://www.ebay.co.uk/sch/i.html?_nkw=${m}&LH_Sold=1&LH_Complete=1" target="_blank" class="btn btn-ebay">${model} (Sold)</a>`;
+                    html += `<a href="https://www.facebook.com/marketplace/search/?query=${m}" target="_blank" class="btn btn-fb">${model} (FB)</a>`;
+                });
 
-                    // PlayStation
-                    window.open(`https://uk.webuy.com/search?stext=PS5`, '_blank');
-                    window.open(`https://uk.webuy.com/search?stext=PS4`, '_blank');
-                    window.open(`https://uk.webuy.com/search?stext=PS3`, '_blank');
+                html += `</div></div>`;
 
-                    window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=PS5&LH_Sold=1&LH_Complete=1`, '_blank');
-                    window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=PS4&LH_Sold=1&LH_Complete=1`, '_blank');
-                    window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=PS3&LH_Sold=1&LH_Complete=1`, '_blank');
-
-                    // Nintendo
-                    window.open(`https://uk.webuy.com/search?stext=Nintendo+Switch`, '_blank');
-                    window.open(`https://uk.webuy.com/search?stext=Wii`, '_blank');
-                    window.open(`https://uk.webuy.com/search?stext=Wii+U`, '_blank');
-
-                    window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=Nintendo+Switch&LH_Sold=1&LH_Complete=1`, '_blank');
-                    window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=Wii&LH_Sold=1&LH_Complete=1`, '_blank');
-                    window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=Wii+U&LH_Sold=1&LH_Complete=1`, '_blank');
-                }, 900);
-
-                document.getElementById('result').innerHTML = 
-                    `Zeskanowano: <b>${code}</b><br>Otwarto wyszukiwania + modele`;
+                document.getElementById('result').innerHTML = html;
             },
             () => {}
         );
