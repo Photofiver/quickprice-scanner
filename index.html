@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickPrice</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body { font-family: system-ui, sans-serif; text-align: center; padding: 20px; background: #f8f9fa; }
+        button { background: #0066ff; color: white; border: none; padding: 20px 50px; font-size: 20px; border-radius: 12px; margin: 30px 0; }
+        #reader { width: 100%; max-width: 500px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+    <h1>QuickPrice</h1>
+    <p>Zeskanuj kod QR lub kreskowy → automatycznie CEX + eBay sold</p>
+    <button id="start">Skanuj kod QR / kreskowy</button>
+    <div id="reader" style="display:none;"></div>
+    <div id="result"></div>
+    <script>
+        document.getElementById('start').onclick = () => {
+            document.getElementById('start').style.display = 'none';
+            document.getElementById('reader').style.display = 'block';
+            const scanner = new Html5Qrcode("reader");
+            scanner.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: 250 },
+                (code) => {
+                    scanner.stop();
+                    document.getElementById('reader').style.display = 'none';
+                    window.open(`https://uk.webuy.com/search?stext=${encodeURIComponent(code)}`, '_blank');
+                    window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(code)}`, '_blank');
+                    window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(code)}&LH_Sold=1&LH_Complete=1`, '_blank');
+                    document.getElementById('result').innerHTML = `Zeskanowano: <b>${code}</b>`;
+                },
+                () => {}
+            );
+        };
+    </script>
+</body>
+</html>
