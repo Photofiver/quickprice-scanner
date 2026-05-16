@@ -3,20 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Barcode + Serial Scanner</title>
+<title>Scanner - Konsole i pady</title>
 <script src="https://unpkg.com/html5-qrcode"></script>
 <style>
     body { font-family: system-ui, sans-serif; text-align: center; padding: 20px; background: #f8f9fa; }
-    button { background: #0066ff; color: white; border: none; padding: 22px 70px; font-size: 22px; border-radius: 14px; margin: 40px 0; }
+    button { background: #0066ff; color: white; border: none; padding: 22px 70px; font-size: 22px; border-radius: 14px; margin: 30px 0; }
     #reader { width: 100%; max-width: 500px; margin: 0 auto; }
+    .tip { font-size: 14px; color: #666; margin-top: 10px; }
 </style>
 </head>
 <body>
-    <h1>Barcode + Serial Scanner</h1>
-    <p>Zeskanuj kod kreskowy lub numer seryjny</p>
-    <button id="start">SKANUJ</button>
+    <h1>Scanner - Konsole i pady</h1>
+    <p>Zeskanuj kod z tyłu konsoli lub pada</p>
+    <button id="start">SKANUJ KOD</button>
     <div id="reader" style="display:none;"></div>
     <div id="result"></div>
+    <p class="tip">Przytrzymaj telefon blisko naklejki z numerem seryjnym</p>
 
 <script>
     document.getElementById('start').onclick = () => {
@@ -27,15 +29,14 @@
         scanner.start(
             { facingMode: "environment" },
             { 
-                fps: 8,           // niższe FPS = lepsza detekcja małych kodów
-                qrbox: 300,
+                fps: 6,              // niższe FPS = lepsza detekcja małych kodów
+                qrbox: 320,
                 aspectRatio: 1.0
             },
             (code) => {
                 scanner.stop();
                 document.getElementById('reader').style.display = 'none';
 
-                // Otwiera 3 karty automatycznie
                 window.open(`https://uk.webuy.com/search?stext=${encodeURIComponent(code)}`, '_blank');
                 window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(code)}`, '_blank');
                 window.open(`https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(code)}&LH_Sold=1&LH_Complete=1`, '_blank');
@@ -43,9 +44,7 @@
                 document.getElementById('result').innerHTML = 
                     `Zeskanowano: <b>${code}</b><br>Otwarto CEX + eBay + eBay Sold`;
             },
-            (errorMessage) => {
-                // można dodać logowanie błędów jeśli potrzeba
-            }
+            () => {}
         );
     };
 </script>
