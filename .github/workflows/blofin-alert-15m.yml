@@ -2,7 +2,7 @@ name: BloFin 15m phone alert
 
 on:
   schedule:
-    - cron: "1,16,31,46 * * * *"
+    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
   push:
     branches:
@@ -17,7 +17,7 @@ permissions:
 jobs:
   scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,7 +27,15 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Run scan
+      - name: Wait until exact 15m candle close
+        run: |
+          NOW=$(date +%s)
+          NEXT=$(( ((NOW / 900) + 1) * 900 + 3 ))
+          WAIT=$(( NEXT - NOW ))
+          echo "Waiting $WAIT seconds for next 15m close"
+          sleep "$WAIT"
+
+      - name: Run scan immediately after close
         run: python blofin_alert_15m.py > scan.md
 
       - name: Build notification
