@@ -46,7 +46,7 @@ jobs:
                 cat scan.md
               } > notification.md
 
-              gh issue comment 1 --repo "${{ github.repository }}" --body-file notification.md || true
+              gh issue comment 2 --repo "${{ github.repository }}" --body-file notification.md || true
             else
               {
                 echo "@Photofiver"
@@ -56,7 +56,7 @@ jobs:
                 echo "Skan nie wykonał się poprawnie. Kolejna próba nastąpi przy następnym zamknięciu świecy."
               } > notification.md
 
-              gh issue comment 1 --repo "${{ github.repository }}" --body-file notification.md || true
+              gh issue comment 2 --repo "${{ github.repository }}" --body-file notification.md || true
             fi
           }
 
