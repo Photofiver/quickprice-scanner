@@ -3,8 +3,12 @@ name: BloFin LIVE trader
 on:
   workflow_dispatch:
 
+concurrency:
+  group: blofin-live-trader
+  cancel-in-progress: false
+
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   live:
@@ -27,3 +31,27 @@ jobs:
           BLOFIN_SECRET_KEY: ${{ secrets.BLOFIN_SECRET_KEY }}
           BLOFIN_PASSPHRASE: ${{ secrets.BLOFIN_PASSPHRASE }}
         run: python blofin_live_trader.py
+
+      - name: Persist rolled capital and trade logs
+        if: always()
+        run: |
+          set -e
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if [ -f blofin_bot_state.json ]; then
+            git add blofin_bot_state.json
+          fi
+
+          if [ -d blofin_live_trades ]; then
+            git add blofin_live_trades
+          fi
+
+          if git diff --cached --quiet; then
+            echo "No live state changes to persist"
+            exit 0
+          fi
+
+          git commit -m "Persist BloFin live state and trade log [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
