@@ -1,0 +1,72 @@
+name: BloFin 15m hypothetical outcome journal
+
+on:
+  workflow_dispatch:
+    inputs:
+      continuation:
+        description: "Internal continuation run"
+        required: false
+        default: "false"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/blofin-outcome-trigger"
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  outcomes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Update one-candle hypothetical outcomes every 15m
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CONTINUATION: ${{ inputs.continuation || 'false' }}
+        run: |
+          set -u
+
+          update_outcomes () {
+            git pull --rebase origin main || true
+            python blofin_outcome_15m.py
+
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add blofin_decision_journal
+
+            if git diff --cached --quiet; then
+              return
+            fi
+
+            git commit -m "Update 15m hypothetical outcomes [skip ci]" || true
+            git pull --rebase origin main || true
+            git push origin HEAD:main || true
+          }
+
+          if [ "$CONTINUATION" != "true" ]; then
+            update_outcomes
+          fi
+
+          for i in $(seq 1 20); do
+            NOW=$(date +%s)
+            NEXT=$(( ((NOW / 900) + 1) * 900 + 25 ))
+            WAIT=$(( NEXT - NOW ))
+            echo "Waiting $WAIT seconds for next 15m candle data"
+            sleep "$WAIT"
+            update_outcomes
+          done
+
+          gh workflow run blofin-outcome-15m.yml \
+            --repo "${{ github.repository }}" \
+            -f continuation=true || true
