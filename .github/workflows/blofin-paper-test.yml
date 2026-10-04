@@ -24,6 +24,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          python blofin_alert_15m.py > scan.md
           python blofin_paper_trader.py > paper.md
           {
             echo "@Photofiver"
