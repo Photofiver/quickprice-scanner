@@ -6,6 +6,8 @@ import hmac
 import json
 import math
 import os
+import smtplib
+import ssl
 import time
 import urllib.error
 import urllib.parse
@@ -13,6 +15,7 @@ import urllib.request
 import uuid
 from datetime import datetime, timezone
 from decimal import Decimal, ROUND_DOWN, ROUND_UP
+from email.message import EmailMessage
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -31,6 +34,12 @@ MIN_TARGET_PCT = Decimal("0.5")
 API_KEY = os.environ.get("BLOFIN_API_KEY", "").strip()
 SECRET_KEY = os.environ.get("BLOFIN_SECRET_KEY", "").strip()
 PASSPHRASE = os.environ.get("BLOFIN_PASSPHRASE", "").strip()
+
+EMAIL_USERNAME = os.environ.get("EMAIL_USERNAME", "").strip()
+EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD", "").strip()
+EMAIL_TO = os.environ.get("EMAIL_TO", "").strip()
+EMAIL_SMTP_HOST = os.environ.get("EMAIL_SMTP_HOST", "").strip()
+EMAIL_SMTP_PORT = os.environ.get("EMAIL_SMTP_PORT", "").strip()
 
 
 def D(x, default="0"):
@@ -65,6 +74,51 @@ def save_state(state):
 
 def notify(text):
     NOTIFY_PATH.write_text("@Photofiver\n\n" + text.strip() + "\n", encoding="utf-8")
+
+
+def send_email(subject, body):
+    try:
+        if not (EMAIL_USERNAME and EMAIL_PASSWORD and EMAIL_TO):
+            print("EMAIL_DISABLED missing EMAIL_USERNAME/EMAIL_PASSWORD/EMAIL_TO")
+            return False
+
+        host = EMAIL_SMTP_HOST
+        if not host:
+            if EMAIL_USERNAME.lower().endswith("@gmail.com"):
+                host = "smtp.gmail.com"
+            else:
+                print("EMAIL_DISABLED missing EMAIL_SMTP_HOST")
+                return False
+
+        if EMAIL_SMTP_PORT:
+            port = int(EMAIL_SMTP_PORT)
+        else:
+            port = 465 if host == "smtp.gmail.com" else 587
+
+        msg = EmailMessage()
+        msg["From"] = EMAIL_USERNAME
+        msg["To"] = EMAIL_TO
+        msg["Subject"] = subject
+        msg.set_content(body)
+
+        context = ssl.create_default_context()
+        if port == 465:
+            with smtplib.SMTP_SSL(host, port, timeout=30, context=context) as smtp:
+                smtp.login(EMAIL_USERNAME, EMAIL_PASSWORD)
+                smtp.send_message(msg)
+        else:
+            with smtplib.SMTP(host, port, timeout=30) as smtp:
+                smtp.ehlo()
+                smtp.starttls(context=context)
+                smtp.ehlo()
+                smtp.login(EMAIL_USERNAME, EMAIL_PASSWORD)
+                smtp.send_message(msg)
+
+        print(f"EMAIL_SENT {subject}")
+        return True
+    except Exception as exc:
+        print(f"EMAIL_ERROR {type(exc).__name__}: {exc}")
+        return False
 
 
 def iso_time(ms, tz):
@@ -329,11 +383,33 @@ def reconcile(state):
     }
     log_path = write_trade_log(state, active, hist, realized, fee, funding, net, new_cap, end_ms)
     save_state(state)
+    close_body = (
+        f"POZYCJA ZAMKNIĘTA\n\n"
+        f"Transakcja: #{active.get('trade_number', state.get('trades', 0))}\n"
+        f"Instrument: {active['inst']}\n"
+        f"Kierunek: {active['direction']}\n"
+        f"Otwarcie UK: {iso_time(active['opened_at'], ZoneInfo('Europe/London'))}\n"
+        f"Zamknięcie UK: {iso_time(end_ms, ZoneInfo('Europe/London'))}\n"
+        f"Kapitał przed: {active.get('capital_before')} USDT\n"
+        f"Realized PnL: {plain(realized)} USDT\n"
+        f"Prowizja: {plain(fee)} USDT\n"
+        f"Funding: {plain(funding)} USDT\n"
+        f"Wynik netto: {plain(net)} USDT\n"
+        f"Kapitał po rolowaniu: {plain(new_cap)} USDT\n"
+        f"TP: {active.get('tp')}\n"
+        f"SL: {active.get('sl')}\n"
+        f"Order ID: {active.get('order_id')}\n"
+        f"Log: {log_path}"
+    )
     notify(
         "## POZYCJA ZAMKNIĘTA\n\n"
         f"**{active['direction']} {active['inst']}**\n\n"
         f"Wynik netto: **{plain(net)} USDT**\n"
         f"Kapitał bota po rolowaniu: **{plain(new_cap)} USDT**"
+    )
+    send_email(
+        f"BloFin CLOSED #{active.get('trade_number', state.get('trades', 0))} {active['direction']} {active['inst']} | {plain(net)} USDT",
+        close_body,
     )
     print(f"CLOSED {active['inst']} net={plain(net)} capital={plain(new_cap)} log={log_path}")
     return False
@@ -516,6 +592,29 @@ def live_run():
     state["trades"] = trade_number
     save_state(state)
 
+    opened_ms = int(state["active"]["opened_at"])
+    open_body = (
+        f"NOWA POZYCJA BLOFIN\n\n"
+        f"Transakcja: #{trade_number}\n"
+        f"Instrument: {sig['inst']}\n"
+        f"Kierunek: {sig['direction']}\n"
+        f"Otwarcie UK: {iso_time(opened_ms, ZoneInfo('Europe/London'))}\n"
+        f"Kapitał użyty: {plain(capital)} USDT\n"
+        f"Lewar: {plain(LEVERAGE)}x\n"
+        f"Wielkość: {plain(plan['contracts'])} kontraktów\n"
+        f"Nominał: {plain(plan['notional'])} USDT\n"
+        f"Cena referencyjna: {plain(plan['price'])}\n"
+        f"TP: {plain(plan['tp'])} (+{plain(TP_PCT)}%)\n"
+        f"SL: {plain(plan['sl'])} (-{plain(SL_PCT)}%)\n"
+        f"Historyczna skuteczność sygnału: {sig['hit_rate']:.1f}%\n"
+        f"Order ID: {order_id}\n"
+        f"Stochastic K/D: {sig.get('stoch_k_8', sig.get('k')):.2f} / {sig.get('stoch_d_3', sig.get('d')):.2f}\n"
+        f"ATR14: {sig.get('atr14')}\n"
+        f"Zmiana 8 świec: {sig.get('change8_pct', sig.get('change8')):.3f}%\n"
+        f"Zmiana 24h: {sig.get('change24'):.3f}%\n"
+        f"Support: {sig.get('support')}\n"
+        f"Resistance: {sig.get('resistance')}"
+    )
     notify(
         "## AUTO WEJŚCIE BLOFIN\n\n"
         f"**{sig['direction']} {sig['inst']}**\n\n"
@@ -526,16 +625,97 @@ def live_run():
         f"Historyczna skuteczność sygnału: **{sig['hit_rate']:.1f}%**\n\n"
         "Po zamknięciu pozycji zysk albo strata netto zostanie dodana do/odjęta od kapitału następnej transakcji."
     )
+    send_email(
+        f"BloFin OPEN #{trade_number} {sig['direction']} {sig['inst']}",
+        open_body,
+    )
     print(f"OPENED {sig['direction']} {sig['inst']} order={order_id} capital={plain(capital)}")
+
+
+def summary_12h():
+    now_ms = int(time.time() * 1000)
+    start_ms = now_ms - 12 * 60 * 60 * 1000
+    logs = []
+
+    if TRADE_LOG_DIR.exists():
+        for path in sorted(TRADE_LOG_DIR.glob("*.json")):
+            try:
+                row = json.loads(path.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            closed_ms = int(row.get("closed_at_ms") or 0)
+            if start_ms <= closed_ms <= now_ms:
+                row["_path"] = str(path)
+                logs.append(row)
+
+    logs.sort(key=lambda x: int(x.get("closed_at_ms") or 0))
+    wins = sum(1 for x in logs if D(x.get("net_pnl_usdt")) > 0)
+    losses = sum(1 for x in logs if D(x.get("net_pnl_usdt")) < 0)
+    flat = len(logs) - wins - losses
+    net_total = sum((D(x.get("net_pnl_usdt")) for x in logs), Decimal("0"))
+    fees_total = sum((D(x.get("fee_usdt")) for x in logs), Decimal("0"))
+    funding_total = sum((D(x.get("funding_usdt")) for x in logs), Decimal("0"))
+
+    state = load_state()
+    cap_now = D(state.get("capital_usdt", START_CAPITAL))
+    active = state.get("active")
+    now_uk = datetime.now(ZoneInfo("Europe/London"))
+    start_uk = datetime.fromtimestamp(start_ms / 1000, ZoneInfo("Europe/London"))
+
+    lines = [
+        "BLOFIN — PODSUMOWANIE 12 GODZIN",
+        "",
+        f"Okres: {start_uk:%Y-%m-%d %H:%M} -> {now_uk:%Y-%m-%d %H:%M} UK",
+        f"Zamknięte transakcje: {len(logs)}",
+        f"Wygrane: {wins}",
+        f"Stratne: {losses}",
+        f"Na zero: {flat}",
+        f"Wynik netto łącznie: {plain(net_total)} USDT",
+        f"Prowizje łącznie: {plain(fees_total)} USDT",
+        f"Funding łącznie: {plain(funding_total)} USDT",
+        f"Aktualny kapitał bota: {plain(cap_now)} USDT",
+    ]
+
+    if active:
+        lines.extend([
+            "",
+            "AKTYWNA POZYCJA:",
+            f"#{active.get('trade_number')} {active.get('direction')} {active.get('inst')}",
+            f"Otwarto UK: {iso_time(active.get('opened_at'), ZoneInfo('Europe/London'))}",
+            f"Kapitał użyty: {active.get('capital_before')} USDT",
+            f"TP: {active.get('tp')}",
+            f"SL: {active.get('sl')}",
+        ])
+    else:
+        lines.extend(["", "Aktywna pozycja: brak"])
+
+    if logs:
+        lines.extend(["", "ZAMKNIĘTE TRANSAKCJE:"])
+        for row in logs:
+            lines.append(
+                f"#{row.get('trade_number')} {row.get('direction')} {row.get('instrument')} | "
+                f"netto {row.get('net_pnl_usdt')} USDT | "
+                f"{row.get('closed_at_uk')}"
+            )
+
+    body = "\n".join(lines)
+    send_email(
+        f"BloFin 12h summary | {len(logs)} trades | {plain(net_total)} USDT",
+        body,
+    )
+    print(body)
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--summary-12h", action="store_true")
     args = parser.parse_args()
     try:
         if args.dry_run:
             dry_run()
+        elif args.summary_12h:
+            summary_12h()
         else:
             live_run()
     except Exception as exc:
