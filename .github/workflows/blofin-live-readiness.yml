@@ -1,0 +1,25 @@
+name: BloFin live readiness check
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Syntax check
+        run: python -m py_compile blofin_alert_15m.py blofin_live_trader.py
+
+      - name: Build exact live order plan without sending an order
+        run: python blofin_live_trader.py --dry-run
