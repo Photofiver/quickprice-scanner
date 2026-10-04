@@ -313,26 +313,35 @@ def main():
     setups.sort(key=lambda x: (x["hit_rate"], x["target_pct"]), reverse=True)
 
     now_uk = datetime.now(ZoneInfo("Europe/London"))
-    print(f"## Skan BloFin 15m — {now_uk:%Y-%m-%d %H:%M} UK")
-    print()
-    print(f"Warunki wejścia: zamknięta świeca 15m, Stochastic(8,3) zgodny z kierunkiem 8 świec, cel do najbliższego wsparcia/oporu co najmniej {MIN_TARGET_PCT:.1f}%, historyczna skuteczność co najmniej {MIN_HIT_RATE:.0f}% na min. {MIN_DECIDED} rozstrzygniętych przypadkach.")
+    minute = (now_uk.minute // 15) * 15
+    closed_at = now_uk.replace(minute=minute, second=0, microsecond=0)
+
+    longs = [s for s in setups if s["direction"] == "LONG"]
+    shorts = [s for s in setups if s["direction"] == "SHORT"]
+    best_long = longs[0] if longs else None
+    best_short = shorts[0] if shorts else None
+
+    print(f"## ŚWIECA 15m ZAMKNIĘTA — {closed_at:%H:%M} UK")
     print()
 
-    if not setups:
-        print("**BRAK WEJŚCIA**")
+    if best_long:
+        print(f"**LONG ↑ {best_long['inst']}**")
+        print(f"Wejście: **{fmt_price(best_long['close'])}**")
+        print(f"Cel: **{fmt_price(best_long['target_price'])}** → profit do celu **+{best_long['target_pct']:.2f}%**")
+        print(f"Historyczna skuteczność: **{best_long['hit_rate']:.1f}%** ({best_long['wins']}/{best_long['decided']})")
     else:
-        for n, s in enumerate(setups, 1):
-            print(f"### {n}. {s['inst']} — {s['direction']}")
-            print(f"- Cena 15m: **{fmt_price(s['close'])}**")
-            print(f"- Wsparcie: **{fmt_price(s['support'])}** ({-s['support_pct']:.2f}% od ceny)" if s["support_pct"] is not None else "- Wsparcie: -")
-            print(f"- Opór: **{fmt_price(s['resistance'])}** (+{s['resistance_pct']:.2f}% od ceny)" if s["resistance_pct"] is not None else "- Opór: -")
-            print(f"- Cel kierunkowy: **{fmt_price(s['target_price'])}** = **{s['target_pct']:.2f}%**")
-            print(f"- Stochastic: K **{s['k']:.1f}**, D **{s['d']:.1f}**")
-            print(f"- Backtest podobnego układu: **{s['hit_rate']:.1f}%** ({s['wins']}/{s['decided']})")
-            print()
+        print("**LONG ↑ — BRAK WEJŚCIA**")
 
-    print("---")
-    print("To jest automatyczny skan techniczny, nie gwarancja wyniku.")
+    print()
+
+    if best_short:
+        print(f"**SHORT ↓ {best_short['inst']}**")
+        print(f"Wejście: **{fmt_price(best_short['close'])}**")
+        print(f"Cel: **{fmt_price(best_short['target_price'])}** → profit do celu **+{best_short['target_pct']:.2f}%**")
+        print(f"Historyczna skuteczność: **{best_short['hit_rate']:.1f}%** ({best_short['wins']}/{best_short['decided']})")
+    else:
+        print("**SHORT ↓ — BRAK WEJŚCIA**")
+
     if errors:
         print()
         print("Błędy częściowe: " + "; ".join(errors))
