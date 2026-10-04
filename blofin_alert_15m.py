@@ -341,8 +341,9 @@ def main():
             return
 
         x = arr[0]
-        status = "WEJŚCIE" if x["passed"] else "KANDYDAT — NIE WCHODZIĆ"
-        print(f"**{label} {arrow} {x['inst']} — {status}**")
+        status = "WEJŚCIE" if x["passed"] else "NIE WCHODZIĆ"
+        print(f"## **{status}**")
+        print(f"**{label} {arrow} {x['inst']}**")
         print(f"Wejście: **{fmt_price(x['close'])}**")
         if x["target_price"] is not None and x["target_pct"] is not None:
             print(f"Cel: **{fmt_price(x['target_price'])}** → ruch do celu **+{x['target_pct']:.2f}%**")
