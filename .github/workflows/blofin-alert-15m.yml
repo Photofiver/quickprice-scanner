@@ -1,0 +1,44 @@
+name: BloFin 15m phone alert
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/blofin-alert-trigger"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run scan
+        run: python blofin_alert_15m.py > scan.md
+
+      - name: Build notification
+        run: |
+          {
+            echo "@Photofiver"
+            echo
+            cat scan.md
+          } > notification.md
+
+      - name: Post alert
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment 1 --repo "${{ github.repository }}" --body-file notification.md
