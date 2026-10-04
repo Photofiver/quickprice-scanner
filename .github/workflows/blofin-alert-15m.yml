@@ -14,7 +14,7 @@ on:
       - ".github/blofin-alert-trigger"
 
 permissions:
-  contents: read
+  contents: write
   issues: write
   actions: write
 
@@ -31,22 +31,46 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Run continuous exact-close scanner
+      - name: Run continuous exact-close scanner + paper trader
         env:
           GH_TOKEN: ${{ github.token }}
           CONTINUATION: ${{ inputs.continuation || 'false' }}
         run: |
           set -u
 
+          persist_paper_state () {
+            if [ -f blofin_paper_state.json ]; then
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git add blofin_paper_state.json
+              if ! git diff --cached --quiet; then
+                git commit -m "Update paper trading state [skip ci]" || true
+                git pull --rebase origin main || true
+                git push origin HEAD:main || true
+              fi
+            fi
+          }
+
           post_scan () {
             if python blofin_alert_15m.py > scan.md; then
+              python blofin_paper_trader.py > paper.md || {
+                echo "# PAPER TRADING" > paper.md
+                echo >> paper.md
+                echo "Błąd symulacji — **nie wykonano żadnego prawdziwego zlecenia**." >> paper.md
+              }
+
               {
                 echo "@Photofiver"
                 echo
                 cat scan.md
+                echo
+                echo "---"
+                echo
+                cat paper.md
               } > notification.md
 
               gh issue comment 2 --repo "${{ github.repository }}" --body-file notification.md || true
+              persist_paper_state
             else
               {
                 echo "@Photofiver"
@@ -54,8 +78,9 @@ jobs:
                 echo "## BŁĄD SKANU 15m"
                 echo
                 echo "Skan nie wykonał się poprawnie. Kolejna próba nastąpi przy następnym zamknięciu świecy."
+                echo
+                echo "**Paper trader nie składa prawdziwych zleceń.**"
               } > notification.md
-
               gh issue comment 2 --repo "${{ github.repository }}" --body-file notification.md || true
             fi
           }
@@ -73,4 +98,6 @@ jobs:
             post_scan
           done
 
-          gh workflow run blofin-alert-15m.yml             --repo "${{ github.repository }}"             -f continuation=true || true
+          gh workflow run blofin-alert-15m.yml \
+            --repo "${{ github.repository }}" \
+            -f continuation=true || true
