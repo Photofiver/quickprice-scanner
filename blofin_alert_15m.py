@@ -348,11 +348,14 @@ def main():
         if x["target_price"] is not None and x["target_pct"] is not None:
             print(f"Cel: **{fmt_price(x['target_price'])}** → ruch do celu **+{x['target_pct']:.2f}%**")
         else:
-            print("Cel: **brak wyznaczonego poziomu S/R**")
+            if label == "LONG":
+                print("Cel: **brak oporu powyżej ceny**")
+            else:
+                print("Cel: **brak wsparcia poniżej ceny**")
         if x["hit_rate"] is not None:
             print(f"Historyczna skuteczność: **{x['hit_rate']:.1f}%** ({x['wins']}/{x['decided']})")
         else:
-            print("Historyczna skuteczność: **brak danych**")
+            print("Historyczna skuteczność: **nie liczono — brak celu S/R**")
         if not x["passed"]:
             print("Powód odrzucenia: **" + "; ".join(x["reasons"]) + "**")
 
