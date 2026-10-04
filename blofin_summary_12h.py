@@ -146,6 +146,37 @@ def main():
                 lines.append("  ZA: " + ("; ".join(pros) if pros else "brak"))
                 lines.append("  PRZECIW: " + ("; ".join(cons) if cons else "brak"))
 
+                obs = x.get("indicators_observed") or {}
+                if obs:
+                    rsi = obs.get("rsi14") or {}
+                    macd = obs.get("macd_12_26_9") or {}
+                    stoch = obs.get("stochastic_8_3") or {}
+                    adx = obs.get("adx14") or {}
+                    obv = obs.get("obv") or {}
+                    ema200 = obs.get("ema200") or {}
+                    bb = obs.get("bollinger_20_2") or {}
+                    pivot = obs.get("pivot_daily") or {}
+                    cvd = obs.get("cvd_proxy") or {}
+                    volume = obs.get("volume") or {}
+                    atr = obs.get("atr14") or {}
+                    dc = obs.get("donchian20") or {}
+
+                    lines.append(
+                        "  OBSERWACJA: "
+                        f"RSI14={rsi.get('value')} {rsi.get('zone')} vsMA9={rsi.get('vs_ma9')}; "
+                        f"MACD={macd.get('position')} hist={macd.get('histogram')} {macd.get('histogram_trend')}; "
+                        f"Stoch={stoch.get('position')} {stoch.get('zone')}; "
+                        f"ADX14={adx.get('value')} {adx.get('strength')}; "
+                        f"OBV5={obv.get('trend_5')}; "
+                        f"cena/EMA200={ema200.get('price_position')}; "
+                        f"BB={bb.get('price_position')}; "
+                        f"Donchian20={dc.get('price_position')}; "
+                        f"Pivot={pivot.get('price_position')}; "
+                        f"CVD-proxy5={cvd.get('trend_5')}; "
+                        f"Volume/MA20={volume.get('vs_ma20')}; "
+                        f"ATR14%={atr.get('pct_of_price')}"
+                    )
+
     body = "\n".join(lines)
     send_email(
         f"BloFin 12h summary | {len(trade_logs)} trades | {plain(net_total)} USDT",
