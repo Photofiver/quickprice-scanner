@@ -5,6 +5,7 @@ import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
+from pathlib import Path
 
 BASE = "https://openapi.blofin.com"
 TOP_N = 10
@@ -15,6 +16,7 @@ MIN_HIT_RATE = 65.0
 MIN_DECIDED = 30
 HORIZON_BARS = 8
 SL_PCT = 1.0
+DECISION_LOG_DIR = Path("blofin_decision_journal")
 
 def get_json(path, params=None):
     url = BASE + path
@@ -316,18 +318,78 @@ def analyse_candidate(inst):
         "reasons": reasons,
     }
 
+
+def decision_pros_cons(x):
+    if not x:
+        return [], ["brak pełnego sygnału kierunkowego po filtrze Stochastic + momentum"]
+
+    pros = [
+        f"Stochastic potwierdza {x['direction']} (K={x['stoch_k_8']:.2f}, D={x['stoch_d_3']:.2f})",
+        f"momentum 8 świec zgodny z kierunkiem ({x['change8_pct']:.3f}%)",
+    ]
+    cons = list(x.get("reasons") or [])
+
+    if x.get("target_pct") is not None and x["target_pct"] >= MIN_TARGET_PCT:
+        pros.append(f"cel S/R wystarczająco daleko ({x['target_pct']:.2f}% >= {MIN_TARGET_PCT:.1f}%)")
+    if x.get("decided", 0) >= MIN_DECIDED:
+        pros.append(f"wystarczająca próba historyczna ({x['decided']} rozstrzygniętych)")
+    if x.get("hit_rate") is not None and x["hit_rate"] >= MIN_HIT_RATE:
+        pros.append(f"historyczna skuteczność {x['hit_rate']:.1f}% >= {MIN_HIT_RATE:.0f}%")
+
+    return pros, cons
+
+
+def write_decision_journal(closed_at, top, analysed_by_inst, selected):
+    DECISION_LOG_DIR.mkdir(parents=True, exist_ok=True)
+    considered = []
+
+    for row in top:
+        x = analysed_by_inst.get(row["inst"])
+        pros, cons = decision_pros_cons(x)
+        if x is None:
+            decision = "BRAK SYGNAŁU KIERUNKOWEGO"
+        elif x.get("passed"):
+            decision = "WEJŚCIE"
+        else:
+            decision = "NIE WCHODZIĆ"
+
+        considered.append({
+            "instrument": row["inst"],
+            "change24_pct": row["change24"],
+            "decision": decision,
+            "pros": pros,
+            "cons": cons,
+            "analysis": x,
+        })
+
+    closed_ms = int(closed_at.timestamp() * 1000)
+    payload = {
+        "closed_at_ms": closed_ms,
+        "closed_at_uk": closed_at.isoformat(),
+        "top10_market": top,
+        "considered": considered,
+        "selected_for_entry": selected,
+    }
+
+    path = DECISION_LOG_DIR / f"{closed_at:%Y%m%d_%H%M}.json"
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return path
+
 def main():
     top = top_usdt_swaps()
     candidates = []
+    analysed_by_inst = {}
     errors = []
 
     for row in top:
         try:
             result = analyse_candidate(row["inst"])
+            analysed_by_inst[row["inst"]] = result
             if result:
                 result["change24"] = row["change24"]
                 candidates.append(result)
         except Exception as exc:
+            analysed_by_inst[row["inst"]] = None
             errors.append(f'{row["inst"]}: {exc}')
 
     def rank(x):
@@ -342,13 +404,27 @@ def main():
     minute = (now_uk.minute // 15) * 15
     closed_at = now_uk.replace(minute=minute, second=0, microsecond=0)
 
+    passed_candidates = [x for x in candidates if x.get("passed")]
+    passed_candidates.sort(
+        key=lambda x: (
+            float(x.get("hit_rate") or 0),
+            float(x.get("target_pct") or 0),
+            float(x.get("change24") or 0),
+        ),
+        reverse=True,
+    )
+    selected = passed_candidates[0] if passed_candidates else None
+
     snapshot = {
         "closed_at_uk": closed_at.isoformat(),
         "long": longs[0] if longs else None,
         "short": shorts[0] if shorts else None,
+        "selected_for_entry": selected,
     }
     with open("blofin_scan_signal.json", "w", encoding="utf-8") as f:
         json.dump(snapshot, f, ensure_ascii=False, indent=2)
+
+    journal_path = write_decision_journal(closed_at, top, analysed_by_inst, selected)
 
     print(f"## ŚWIECA 15m ZAMKNIĘTA — {closed_at:%H:%M} UK")
     print()
@@ -383,6 +459,9 @@ def main():
 
     print()
     print(f"Sygnały kierunkowe w TOP10: **LONG {len(longs)} / SHORT {len(shorts)}**")
+
+    print()
+    print(f"Pamiętnik decyzji: **{journal_path}**")
 
     if errors:
         print()
