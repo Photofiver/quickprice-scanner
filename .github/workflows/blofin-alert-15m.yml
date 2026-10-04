@@ -46,10 +46,6 @@ jobs:
               git add blofin_paper_state.json
             fi
 
-            if [ -d blofin_decision_journal ]; then
-              git add blofin_decision_journal
-            fi
-
             if git diff --cached --quiet; then
               return
             fi
