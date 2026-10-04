@@ -39,7 +39,7 @@ jobs:
 
       - name: Syntax check
         if: steps.london.outputs.run == 'yes'
-        run: python -m py_compile blofin_alert_15m.py blofin_live_trader.py
+        run: python -m py_compile blofin_alert_15m.py blofin_live_trader.py blofin_summary_12h.py
 
       - name: Send 12h summary email
         if: steps.london.outputs.run == 'yes'
@@ -49,4 +49,4 @@ jobs:
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           EMAIL_SMTP_HOST: ${{ secrets.EMAIL_SMTP_HOST }}
           EMAIL_SMTP_PORT: ${{ secrets.EMAIL_SMTP_PORT }}
-        run: python blofin_live_trader.py --summary-12h
+        run: python blofin_summary_12h.py
