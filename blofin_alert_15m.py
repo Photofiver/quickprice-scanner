@@ -236,7 +236,7 @@ def fmt_price(x):
         return f"{x:.6f}".rstrip("0").rstrip(".")
     return f"{x:.8f}".rstrip("0").rstrip(".")
 
-def analyse(inst):
+def analyse_candidate(inst):
     b = candles(inst)
     if len(b) < 300:
         return None
@@ -255,26 +255,36 @@ def analyse(inst):
         return None
 
     support, resistance = nearest_levels(b, a, i)
-    if direction == 1:
-        if not resistance:
-            return None
+    target_price = None
+    target_pct = None
+
+    if direction == 1 and resistance:
         target_price = resistance["price"]
         target_pct = (target_price - b[i]["c"]) / b[i]["c"] * 100.0
-    else:
-        if not support:
-            return None
+    elif direction == -1 and support:
         target_price = support["price"]
         target_pct = (b[i]["c"] - target_price) / b[i]["c"] * 100.0
 
-    if target_pct < MIN_TARGET_PCT:
-        return None
+    bt = None
+    if target_pct is not None and target_pct > 0:
+        bt = backtest_current_setup(b, k, d, direction, target_pct)
 
-    bt = backtest_current_setup(b, k, d, direction, target_pct)
-    if bt["decided"] < MIN_DECIDED or bt["hit_rate"] is None or bt["hit_rate"] < MIN_HIT_RATE:
-        return None
+    reasons = []
+    if target_pct is None:
+        reasons.append("brak najbliższego celu S/R")
+    elif target_pct < MIN_TARGET_PCT:
+        reasons.append(f"cel tylko {target_pct:.2f}% < {MIN_TARGET_PCT:.1f}%")
 
-    support_pct = ((b[i]["c"] - support["price"]) / b[i]["c"] * 100.0) if support else None
-    resistance_pct = ((resistance["price"] - b[i]["c"]) / b[i]["c"] * 100.0) if resistance else None
+    if bt is None:
+        reasons.append("brak backtestu")
+    else:
+        if bt["decided"] < MIN_DECIDED:
+            reasons.append(f"tylko {bt['decided']} rozstrzygniętych przypadków")
+        if bt["hit_rate"] is None or bt["hit_rate"] < MIN_HIT_RATE:
+            hr = 0.0 if bt["hit_rate"] is None else bt["hit_rate"]
+            reasons.append(f"skuteczność {hr:.1f}% < {MIN_HIT_RATE:.0f}%")
+
+    passed = len(reasons) == 0
 
     return {
         "inst": inst,
@@ -285,62 +295,72 @@ def analyse(inst):
         "d": d[i],
         "change8": change8,
         "support": support["price"] if support else None,
-        "support_pct": support_pct,
         "resistance": resistance["price"] if resistance else None,
-        "resistance_pct": resistance_pct,
         "target_price": target_price,
         "target_pct": target_pct,
-        "hit_rate": bt["hit_rate"],
-        "wins": bt["wins"],
-        "losses": bt["losses"],
-        "decided": bt["decided"],
+        "hit_rate": bt["hit_rate"] if bt else None,
+        "wins": bt["wins"] if bt else 0,
+        "losses": bt["losses"] if bt else 0,
+        "decided": bt["decided"] if bt else 0,
+        "passed": passed,
+        "reasons": reasons,
     }
 
 def main():
     top = top_usdt_swaps()
-    setups = []
+    candidates = []
     errors = []
 
     for row in top:
         try:
-            result = analyse(row["inst"])
+            result = analyse_candidate(row["inst"])
             if result:
                 result["change24"] = row["change24"]
-                setups.append(result)
+                candidates.append(result)
         except Exception as exc:
             errors.append(f'{row["inst"]}: {exc}')
 
-    setups.sort(key=lambda x: (x["hit_rate"], x["target_pct"]), reverse=True)
+    def rank(x):
+        hr = x["hit_rate"] if x["hit_rate"] is not None else -1.0
+        tp = x["target_pct"] if x["target_pct"] is not None else -1.0
+        return (1 if x["passed"] else 0, hr, tp)
+
+    longs = sorted((x for x in candidates if x["direction"] == "LONG"), key=rank, reverse=True)
+    shorts = sorted((x for x in candidates if x["direction"] == "SHORT"), key=rank, reverse=True)
 
     now_uk = datetime.now(ZoneInfo("Europe/London"))
     minute = (now_uk.minute // 15) * 15
     closed_at = now_uk.replace(minute=minute, second=0, microsecond=0)
 
-    longs = [s for s in setups if s["direction"] == "LONG"]
-    shorts = [s for s in setups if s["direction"] == "SHORT"]
-    best_long = longs[0] if longs else None
-    best_short = shorts[0] if shorts else None
-
     print(f"## ŚWIECA 15m ZAMKNIĘTA — {closed_at:%H:%M} UK")
     print()
 
-    if best_long:
-        print(f"**LONG ↑ {best_long['inst']}**")
-        print(f"Wejście: **{fmt_price(best_long['close'])}**")
-        print(f"Cel: **{fmt_price(best_long['target_price'])}** → profit do celu **+{best_long['target_pct']:.2f}%**")
-        print(f"Historyczna skuteczność: **{best_long['hit_rate']:.1f}%** ({best_long['wins']}/{best_long['decided']})")
-    else:
-        print("**LONG ↑ — BRAK WEJŚCIA**")
+    def print_side(label, arrow, arr):
+        if not arr:
+            print(f"**{label} {arrow} — BRAK SYGNAŁU KIERUNKOWEGO**")
+            return
+
+        x = arr[0]
+        status = "WEJŚCIE" if x["passed"] else "KANDYDAT — NIE WCHODZIĆ"
+        print(f"**{label} {arrow} {x['inst']} — {status}**")
+        print(f"Wejście: **{fmt_price(x['close'])}**")
+        if x["target_price"] is not None and x["target_pct"] is not None:
+            print(f"Cel: **{fmt_price(x['target_price'])}** → ruch do celu **+{x['target_pct']:.2f}%**")
+        else:
+            print("Cel: **brak wyznaczonego poziomu S/R**")
+        if x["hit_rate"] is not None:
+            print(f"Historyczna skuteczność: **{x['hit_rate']:.1f}%** ({x['wins']}/{x['decided']})")
+        else:
+            print("Historyczna skuteczność: **brak danych**")
+        if not x["passed"]:
+            print("Powód odrzucenia: **" + "; ".join(x["reasons"]) + "**")
+
+    print_side("LONG", "↑", longs)
+    print()
+    print_side("SHORT", "↓", shorts)
 
     print()
-
-    if best_short:
-        print(f"**SHORT ↓ {best_short['inst']}**")
-        print(f"Wejście: **{fmt_price(best_short['close'])}**")
-        print(f"Cel: **{fmt_price(best_short['target_price'])}** → profit do celu **+{best_short['target_pct']:.2f}%**")
-        print(f"Historyczna skuteczność: **{best_short['hit_rate']:.1f}%** ({best_short['wins']}/{best_short['decided']})")
-    else:
-        print("**SHORT ↓ — BRAK WEJŚCIA**")
+    print(f"Sygnały kierunkowe w TOP10: **LONG {len(longs)} / SHORT {len(shorts)}**")
 
     if errors:
         print()
