@@ -1,9 +1,12 @@
 name: BloFin 15m phone alert
 
 on:
-  schedule:
-    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
+    inputs:
+      continuation:
+        description: "Internal continuation run"
+        required: false
+        default: "false"
   push:
     branches:
       - main
@@ -13,11 +16,12 @@ on:
 permissions:
   contents: read
   issues: write
+  actions: write
 
 jobs:
   scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 330
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,26 +31,46 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Wait until exact 15m candle close
-        run: |
-          NOW=$(date +%s)
-          NEXT=$(( ((NOW / 900) + 1) * 900 + 3 ))
-          WAIT=$(( NEXT - NOW ))
-          echo "Waiting $WAIT seconds for next 15m close"
-          sleep "$WAIT"
-
-      - name: Run scan immediately after close
-        run: python blofin_alert_15m.py > scan.md
-
-      - name: Build notification
-        run: |
-          {
-            echo "@Photofiver"
-            echo
-            cat scan.md
-          } > notification.md
-
-      - name: Post alert
+      - name: Run continuous exact-close scanner
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh issue comment 1 --repo "${{ github.repository }}" --body-file notification.md
+          CONTINUATION: ${{ inputs.continuation || 'false' }}
+        run: |
+          set -u
+
+          post_scan () {
+            if python blofin_alert_15m.py > scan.md; then
+              {
+                echo "@Photofiver"
+                echo
+                cat scan.md
+              } > notification.md
+
+              gh issue comment 1 --repo "${{ github.repository }}" --body-file notification.md || true
+            else
+              {
+                echo "@Photofiver"
+                echo
+                echo "## BŁĄD SKANU 15m"
+                echo
+                echo "Skan nie wykonał się poprawnie. Kolejna próba nastąpi przy następnym zamknięciu świecy."
+              } > notification.md
+
+              gh issue comment 1 --repo "${{ github.repository }}" --body-file notification.md || true
+            fi
+          }
+
+          if [ "$CONTINUATION" != "true" ]; then
+            post_scan
+          fi
+
+          for i in $(seq 1 20); do
+            NOW=$(date +%s)
+            NEXT=$(( ((NOW / 900) + 1) * 900 + 3 ))
+            WAIT=$(( NEXT - NOW ))
+            echo "Waiting $WAIT seconds for the next 15m candle close"
+            sleep "$WAIT"
+            post_scan
+          done
+
+          gh workflow run blofin-alert-15m.yml             --repo "${{ github.repository }}"             -f continuation=true || true
