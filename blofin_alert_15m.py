@@ -111,6 +111,297 @@ def stochastic_8_3(bars):
         d[i] = (k[i] + k[i-1] + k[i-2]) / 3.0
     return k, d
 
+
+def ema_series(values, n):
+    out = [math.nan] * len(values)
+    if len(values) < n:
+        return out
+    seed = sum(values[:n]) / n
+    out[n - 1] = seed
+    alpha = 2.0 / (n + 1.0)
+    for i in range(n, len(values)):
+        out[i] = values[i] * alpha + out[i - 1] * (1.0 - alpha)
+    return out
+
+
+def rsi_series(values, n=14):
+    out = [math.nan] * len(values)
+    if len(values) <= n:
+        return out
+    gains = [0.0] * len(values)
+    losses = [0.0] * len(values)
+    for i in range(1, len(values)):
+        d = values[i] - values[i - 1]
+        gains[i] = max(d, 0.0)
+        losses[i] = max(-d, 0.0)
+    avg_gain = sum(gains[1:n + 1]) / n
+    avg_loss = sum(losses[1:n + 1]) / n
+    out[n] = 100.0 if avg_loss == 0 else 100.0 - 100.0 / (1.0 + avg_gain / avg_loss)
+    for i in range(n + 1, len(values)):
+        avg_gain = (avg_gain * (n - 1) + gains[i]) / n
+        avg_loss = (avg_loss * (n - 1) + losses[i]) / n
+        out[i] = 100.0 if avg_loss == 0 else 100.0 - 100.0 / (1.0 + avg_gain / avg_loss)
+    return out
+
+
+def adx_series(bars, n=14):
+    size = len(bars)
+    adx = [math.nan] * size
+    if size <= n * 2:
+        return adx
+
+    tr = [0.0] * size
+    plus_dm = [0.0] * size
+    minus_dm = [0.0] * size
+    for i in range(1, size):
+        up = bars[i]["h"] - bars[i - 1]["h"]
+        down = bars[i - 1]["l"] - bars[i]["l"]
+        plus_dm[i] = up if up > down and up > 0 else 0.0
+        minus_dm[i] = down if down > up and down > 0 else 0.0
+        tr[i] = max(
+            bars[i]["h"] - bars[i]["l"],
+            abs(bars[i]["h"] - bars[i - 1]["c"]),
+            abs(bars[i]["l"] - bars[i - 1]["c"]),
+        )
+
+    sm_tr = sum(tr[1:n + 1])
+    sm_plus = sum(plus_dm[1:n + 1])
+    sm_minus = sum(minus_dm[1:n + 1])
+    dx = [math.nan] * size
+
+    for i in range(n, size):
+        if i > n:
+            sm_tr = sm_tr - sm_tr / n + tr[i]
+            sm_plus = sm_plus - sm_plus / n + plus_dm[i]
+            sm_minus = sm_minus - sm_minus / n + minus_dm[i]
+        if sm_tr <= 0:
+            continue
+        plus_di = 100.0 * sm_plus / sm_tr
+        minus_di = 100.0 * sm_minus / sm_tr
+        den = plus_di + minus_di
+        dx[i] = 0.0 if den == 0 else 100.0 * abs(plus_di - minus_di) / den
+
+    vals = [dx[i] for i in range(n, min(size, n * 2)) if math.isfinite(dx[i])]
+    if len(vals) == n:
+        adx[n * 2 - 1] = sum(vals) / n
+        for i in range(n * 2, size):
+            if math.isfinite(dx[i]):
+                adx[i] = (adx[i - 1] * (n - 1) + dx[i]) / n
+    return adx
+
+
+def previous_day_pivots(bars):
+    if not bars:
+        return None
+    last_dt = datetime.fromtimestamp(bars[-1]["t"] / 1000, timezone.utc).date()
+    prior_dates = sorted({
+        datetime.fromtimestamp(x["t"] / 1000, timezone.utc).date()
+        for x in bars
+        if datetime.fromtimestamp(x["t"] / 1000, timezone.utc).date() < last_dt
+    })
+    if not prior_dates:
+        return None
+    day = prior_dates[-1]
+    rows = [
+        x for x in bars
+        if datetime.fromtimestamp(x["t"] / 1000, timezone.utc).date() == day
+    ]
+    if not rows:
+        return None
+    h = max(x["h"] for x in rows)
+    l = min(x["l"] for x in rows)
+    c = rows[-1]["c"]
+    p = (h + l + c) / 3.0
+    return {
+        "day_utc": str(day),
+        "p": p,
+        "r1": 2 * p - l,
+        "s1": 2 * p - h,
+        "r2": p + (h - l),
+        "s2": p - (h - l),
+    }
+
+
+def observe_market(inst):
+    b = candles(inst)
+    if len(b) < 220:
+        return {"error": "za mało świec do pełnej obserwacji"}
+
+    closes = [x["c"] for x in b]
+    vols = [x["v"] for x in b]
+    i = len(b) - 1
+
+    k, d = stochastic_8_3(b)
+    a = atr(b)
+    adx = adx_series(b)
+    rsi = rsi_series(closes, 14)
+    rsi_ma9 = math.nan
+    recent_rsi = [x for x in rsi[max(0, i - 8):i + 1] if math.isfinite(x)]
+    if len(recent_rsi) == 9:
+        rsi_ma9 = sum(recent_rsi) / 9.0
+
+    ema12 = ema_series(closes, 12)
+    ema26 = ema_series(closes, 26)
+    ema200 = ema_series(closes, 200)
+    macd = [math.nan] * len(closes)
+    for q in range(len(closes)):
+        if math.isfinite(ema12[q]) and math.isfinite(ema26[q]):
+            macd[q] = ema12[q] - ema26[q]
+    macd_valid = [0.0 if not math.isfinite(x) else x for x in macd]
+    macd_signal = ema_series(macd_valid, 9)
+    macd_hist = (
+        macd[i] - macd_signal[i]
+        if math.isfinite(macd[i]) and math.isfinite(macd_signal[i])
+        else math.nan
+    )
+
+    obv = [0.0] * len(b)
+    cvd_proxy = [0.0] * len(b)
+    for q in range(1, len(b)):
+        if closes[q] > closes[q - 1]:
+            obv[q] = obv[q - 1] + vols[q]
+        elif closes[q] < closes[q - 1]:
+            obv[q] = obv[q - 1] - vols[q]
+        else:
+            obv[q] = obv[q - 1]
+
+        signed_v = vols[q] if b[q]["c"] > b[q]["o"] else -vols[q] if b[q]["c"] < b[q]["o"] else 0.0
+        cvd_proxy[q] = cvd_proxy[q - 1] + signed_v
+
+    w20 = closes[-20:]
+    mean20 = sum(w20) / 20.0
+    std20 = (sum((x - mean20) ** 2 for x in w20) / 20.0) ** 0.5
+    bb_upper = mean20 + 2.0 * std20
+    bb_lower = mean20 - 2.0 * std20
+    dc_upper = max(x["h"] for x in b[-20:])
+    dc_lower = min(x["l"] for x in b[-20:])
+    vol_ma20 = sum(vols[-20:]) / 20.0
+    piv = previous_day_pivots(b)
+    support, resistance = nearest_levels(b, a, i)
+
+    def relation(v, ref):
+        if not (math.isfinite(v) and math.isfinite(ref)):
+            return None
+        if v > ref:
+            return "ABOVE"
+        if v < ref:
+            return "BELOW"
+        return "EQUAL"
+
+    if closes[i] > bb_upper:
+        bb_position = "ABOVE_UPPER"
+    elif closes[i] < bb_lower:
+        bb_position = "BELOW_LOWER"
+    else:
+        bb_position = "INSIDE"
+
+    if rsi[i] >= 70:
+        rsi_zone = "OVERBOUGHT"
+    elif rsi[i] <= 30:
+        rsi_zone = "OVERSOLD"
+    else:
+        rsi_zone = "NEUTRAL"
+
+    stoch_zone = "OVERBOUGHT" if k[i] >= 80 else "OVERSOLD" if k[i] <= 20 else "NEUTRAL"
+    adx_strength = "STRONG" if adx[i] >= 25 else "WEAK"
+    candle_color = "GREEN" if b[i]["c"] > b[i]["o"] else "RED" if b[i]["c"] < b[i]["o"] else "DOJI"
+    macd_side = "BULLISH" if math.isfinite(macd[i]) and math.isfinite(macd_signal[i]) and macd[i] > macd_signal[i] else "BEARISH"
+    hist_trend = None
+    if i > 0 and math.isfinite(macd_hist) and math.isfinite(macd[i - 1]) and math.isfinite(macd_signal[i - 1]):
+        prev_hist = macd[i - 1] - macd_signal[i - 1]
+        hist_trend = "RISING" if macd_hist > prev_hist else "FALLING" if macd_hist < prev_hist else "FLAT"
+
+    pivot_position = None
+    if piv:
+        if closes[i] > piv["r1"]:
+            pivot_position = "ABOVE_R1"
+        elif closes[i] > piv["p"]:
+            pivot_position = "P_TO_R1"
+        elif closes[i] < piv["s1"]:
+            pivot_position = "BELOW_S1"
+        elif closes[i] < piv["p"]:
+            pivot_position = "S1_TO_P"
+        else:
+            pivot_position = "AT_P"
+
+    return {
+        "bar_time": b[i]["t"],
+        "price": closes[i],
+        "candle": {
+            "open": b[i]["o"], "high": b[i]["h"], "low": b[i]["l"], "close": b[i]["c"],
+            "color": candle_color,
+        },
+        "volume": {
+            "value": vols[i],
+            "ma20": vol_ma20,
+            "vs_ma20": "ABOVE" if vols[i] > vol_ma20 else "BELOW" if vols[i] < vol_ma20 else "EQUAL",
+        },
+        "rsi14": {
+            "value": rsi[i],
+            "zone": rsi_zone,
+            "ma9": rsi_ma9 if math.isfinite(rsi_ma9) else None,
+            "vs_ma9": relation(rsi[i], rsi_ma9),
+        },
+        "macd_12_26_9": {
+            "line": macd[i] if math.isfinite(macd[i]) else None,
+            "signal": macd_signal[i] if math.isfinite(macd_signal[i]) else None,
+            "histogram": macd_hist if math.isfinite(macd_hist) else None,
+            "position": macd_side,
+            "histogram_trend": hist_trend,
+        },
+        "stochastic_8_3": {
+            "k": k[i], "d": d[i],
+            "position": "K_ABOVE_D" if k[i] > d[i] else "K_BELOW_D" if k[i] < d[i] else "EQUAL",
+            "zone": stoch_zone,
+        },
+        "adx14": {
+            "value": adx[i] if math.isfinite(adx[i]) else None,
+            "strength": adx_strength if math.isfinite(adx[i]) else None,
+        },
+        "obv": {
+            "value": obv[i],
+            "trend_5": "RISING" if obv[i] > obv[max(0, i - 5)] else "FALLING" if obv[i] < obv[max(0, i - 5)] else "FLAT",
+        },
+        "ema200": {
+            "value": ema200[i] if math.isfinite(ema200[i]) else None,
+            "price_position": relation(closes[i], ema200[i]),
+        },
+        "bollinger_20_2": {
+            "lower": bb_lower, "mid": mean20, "upper": bb_upper,
+            "price_position": bb_position,
+        },
+        "donchian20": {
+            "lower": dc_lower, "upper": dc_upper,
+            "price_position": (
+                "AT_UPPER" if closes[i] >= dc_upper else
+                "AT_LOWER" if closes[i] <= dc_lower else
+                "INSIDE"
+            ),
+        },
+        "atr14": {
+            "value": a[i],
+            "pct_of_price": (a[i] / closes[i] * 100.0) if closes[i] else None,
+        },
+        "pivot_daily": {
+            **(piv or {}),
+            "price_position": pivot_position,
+        } if piv else None,
+        "cvd_proxy": {
+            "value": cvd_proxy[i],
+            "trend_5": "RISING" if cvd_proxy[i] > cvd_proxy[max(0, i - 5)] else "FALLING" if cvd_proxy[i] < cvd_proxy[max(0, i - 5)] else "FLAT",
+            "note": "proxy z kierunku świecy 15m, nie prawdziwy trade-side CVD",
+        },
+        "support_resistance": {
+            "support": support["price"] if support else None,
+            "support_touches": support["touches"] if support else None,
+            "resistance": resistance["price"] if resistance else None,
+            "resistance_touches": resistance["touches"] if resistance else None,
+        },
+        "change8_pct": (closes[i] / closes[i - 7] - 1.0) * 100.0,
+        "used_for_entry_decision": False,
+    }
+
+
 def nearest_levels(bars, atr_values, i):
     cur = bars[i]["c"]
     if not math.isfinite(atr_values[i]):
@@ -339,7 +630,7 @@ def decision_pros_cons(x):
     return pros, cons
 
 
-def write_decision_journal(closed_at, top, analysed_by_inst, selected):
+def write_decision_journal(closed_at, top, analysed_by_inst, observations_by_inst, selected):
     DECISION_LOG_DIR.mkdir(parents=True, exist_ok=True)
     considered = []
 
@@ -360,6 +651,7 @@ def write_decision_journal(closed_at, top, analysed_by_inst, selected):
             "pros": pros,
             "cons": cons,
             "analysis": x,
+            "indicators_observed": observations_by_inst.get(row["inst"]),
         })
 
     closed_ms = int(closed_at.timestamp() * 1000)
@@ -379,9 +671,15 @@ def main():
     top = top_usdt_swaps()
     candidates = []
     analysed_by_inst = {}
+    observations_by_inst = {}
     errors = []
 
     for row in top:
+        try:
+            observations_by_inst[row["inst"]] = observe_market(row["inst"])
+        except Exception as exc:
+            observations_by_inst[row["inst"]] = {"error": str(exc)}
+
         try:
             result = analyse_candidate(row["inst"])
             analysed_by_inst[row["inst"]] = result
@@ -424,7 +722,7 @@ def main():
     with open("blofin_scan_signal.json", "w", encoding="utf-8") as f:
         json.dump(snapshot, f, ensure_ascii=False, indent=2)
 
-    journal_path = write_decision_journal(closed_at, top, analysed_by_inst, selected)
+    journal_path = write_decision_journal(closed_at, top, analysed_by_inst, observations_by_inst, selected)
 
     print(f"## ŚWIECA 15m ZAMKNIĘTA — {closed_at:%H:%M} UK")
     print()
