@@ -1,0 +1,31 @@
+name: BloFin one-off 15m decision email
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/blofin-decision-email-trigger"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Syntax check
+        run: python -m py_compile blofin_alert_15m.py blofin_live_trader.py blofin_decision_email.py
+      - name: Analyse last closed 15m candle and email decision
+        env:
+          EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          EMAIL_SMTP_HOST: ${{ secrets.EMAIL_SMTP_HOST }}
+          EMAIL_SMTP_PORT: ${{ secrets.EMAIL_SMTP_PORT }}
+        run: python blofin_decision_email.py
