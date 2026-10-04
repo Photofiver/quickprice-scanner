@@ -11,18 +11,22 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
+from datetime import datetime, timezone
 from decimal import Decimal, ROUND_DOWN, ROUND_UP
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from blofin_alert_15m import top_usdt_swaps, analyse_candidate
 
 BASE = "https://openapi.blofin.com"
 STATE_PATH = Path("blofin_bot_state.json")
 NOTIFY_PATH = Path("trade_notify.md")
+TRADE_LOG_DIR = Path("blofin_live_trades")
 START_CAPITAL = Decimal("10")
 LEVERAGE = Decimal("1")
-SL_PCT = Decimal("1")
-MIN_TARGET_PCT = Decimal("1")
+TP_PCT = Decimal("0.5")
+SL_PCT = Decimal("0.5")
+MIN_TARGET_PCT = Decimal("0.5")
 
 API_KEY = os.environ.get("BLOFIN_API_KEY", "").strip()
 SECRET_KEY = os.environ.get("BLOFIN_SECRET_KEY", "").strip()
@@ -61,6 +65,51 @@ def save_state(state):
 
 def notify(text):
     NOTIFY_PATH.write_text("@Photofiver\n\n" + text.strip() + "\n", encoding="utf-8")
+
+
+def iso_time(ms, tz):
+    return datetime.fromtimestamp(int(ms) / 1000, tz).isoformat()
+
+
+def write_trade_log(state, active, hist, realized, fee, funding, net, new_cap, end_ms):
+    TRADE_LOG_DIR.mkdir(parents=True, exist_ok=True)
+    opened_ms = int(active["opened_at"])
+    trade_no = int(active.get("trade_number") or state.get("trades") or 0)
+    stamp = datetime.fromtimestamp(opened_ms / 1000, timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    inst = str(active["inst"]).replace("/", "-")
+    path = TRADE_LOG_DIR / f"{trade_no:06d}_{stamp}_{inst}_{active['direction']}.json"
+    log = {
+        "trade_number": trade_no,
+        "status": "closed",
+        "instrument": active["inst"],
+        "direction": active["direction"],
+        "order_id": active.get("order_id"),
+        "client_order_id": active.get("client_order_id"),
+        "position_id": active.get("position_id"),
+        "opened_at_ms": opened_ms,
+        "opened_at_utc": iso_time(opened_ms, timezone.utc),
+        "opened_at_uk": iso_time(opened_ms, ZoneInfo("Europe/London")),
+        "closed_at_ms": int(end_ms),
+        "closed_at_utc": iso_time(end_ms, timezone.utc),
+        "closed_at_uk": iso_time(end_ms, ZoneInfo("Europe/London")),
+        "capital_before_usdt": active.get("capital_before"),
+        "capital_after_usdt": plain(new_cap),
+        "realized_pnl_usdt": plain(realized),
+        "fee_usdt": plain(fee),
+        "funding_usdt": plain(funding),
+        "net_pnl_usdt": plain(net),
+        "contracts": active.get("contracts"),
+        "notional_usdt": active.get("notional_usdt"),
+        "reference_entry_price": active.get("reference_price"),
+        "tp_price": active.get("tp"),
+        "sl_price": active.get("sl"),
+        "tp_pct": plain(TP_PCT),
+        "sl_pct": plain(SL_PCT),
+        "signal_snapshot": active.get("signal_snapshot", {}),
+        "blofin_position_history": hist,
+    }
+    path.write_text(json.dumps(log, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return path
 
 
 def public_get(path, params=None):
@@ -278,6 +327,7 @@ def reconcile(state):
         "capital_after": plain(new_cap),
         "closed_at": end_ms,
     }
+    log_path = write_trade_log(state, active, hist, realized, fee, funding, net, new_cap, end_ms)
     save_state(state)
     notify(
         "## POZYCJA ZAMKNIĘTA\n\n"
@@ -285,7 +335,7 @@ def reconcile(state):
         f"Wynik netto: **{plain(net)} USDT**\n"
         f"Kapitał bota po rolowaniu: **{plain(new_cap)} USDT**"
     )
-    print(f"CLOSED {active['inst']} net={plain(net)} capital={plain(new_cap)}")
+    print(f"CLOSED {active['inst']} net={plain(net)} capital={plain(new_cap)} log={log_path}")
     return False
 
 
@@ -303,15 +353,13 @@ def make_order_plan(sig, capital):
     target = D(sig["target_price"])
     if sig["direction"] == "LONG":
         target_pct_now = (target / price - 1) * 100
-        sl = price * (Decimal("1") - SL_PCT / 100)
-        tp = step_floor(target, tick)
-        sl = step_floor(sl, tick)
+        tp = step_ceil(price * (Decimal("1") + TP_PCT / 100), tick)
+        sl = step_ceil(price * (Decimal("1") - SL_PCT / 100), tick)
         order_side = "buy"
     else:
         target_pct_now = (price / target - 1) * 100
-        sl = price * (Decimal("1") + SL_PCT / 100)
-        tp = step_ceil(target, tick)
-        sl = step_ceil(sl, tick)
+        tp = step_floor(price * (Decimal("1") - TP_PCT / 100), tick)
+        sl = step_floor(price * (Decimal("1") + SL_PCT / 100), tick)
         order_side = "sell"
 
     if target_pct_now < MIN_TARGET_PCT:
@@ -444,7 +492,9 @@ def live_run():
     except Exception:
         pass
 
+    trade_number = int(state.get("trades", 0)) + 1
     state["active"] = {
+        "trade_number": trade_number,
         "inst": sig["inst"],
         "direction": sig["direction"],
         "order_id": order_id,
@@ -460,9 +510,10 @@ def live_run():
         "hit_rate": sig["hit_rate"],
         "target_pct": sig["target_pct"],
         "bar_time": sig["bar_time"],
+        "signal_snapshot": sig,
     }
     state["last_trade_signal"] = signal_id
-    state["trades"] = int(state.get("trades", 0)) + 1
+    state["trades"] = trade_number
     save_state(state)
 
     notify(
@@ -470,8 +521,8 @@ def live_run():
         f"**{sig['direction']} {sig['inst']}**\n\n"
         f"Kapitał użyty: **{plain(capital)} USDT** (1×)\n"
         f"Wielkość: **{plain(plan['contracts'])} kontraktów** ≈ **{plain(plan['notional'])} USDT**\n"
-        f"TP: **{plain(plan['tp'])}**\n"
-        f"SL: **{plain(plan['sl'])}** (1%)\n"
+        f"TP: **{plain(plan['tp'])}** (+{plain(TP_PCT)}%)\n"
+        f"SL: **{plain(plan['sl'])}** (-{plain(SL_PCT)}%)\n"
         f"Historyczna skuteczność sygnału: **{sig['hit_rate']:.1f}%**\n\n"
         "Po zamknięciu pozycji zysk albo strata netto zostanie dodana do/odjęta od kapitału następnej transakcji."
     )
