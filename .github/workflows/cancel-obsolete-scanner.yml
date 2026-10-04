@@ -1,0 +1,21 @@
+name: Cancel obsolete scanner
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/cancel-old-scanner"
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cancel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel obsolete 15m scanner run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run cancel 37209729778 --repo "${{ github.repository }}"
