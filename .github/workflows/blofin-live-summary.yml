@@ -1,0 +1,52 @@
+name: BloFin 12h email summary
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 5,6,17,18 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  summary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run only at 06:00 or 18:00 London time
+        id: london
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "run=yes" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          HOUR=$(TZ=Europe/London date +%H)
+          if [ "$HOUR" = "06" ] || [ "$HOUR" = "18" ]; then
+            echo "run=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=no" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Python
+        if: steps.london.outputs.run == 'yes'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Syntax check
+        if: steps.london.outputs.run == 'yes'
+        run: python -m py_compile blofin_alert_15m.py blofin_live_trader.py
+
+      - name: Send 12h summary email
+        if: steps.london.outputs.run == 'yes'
+        env:
+          EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          EMAIL_SMTP_HOST: ${{ secrets.EMAIL_SMTP_HOST }}
+          EMAIL_SMTP_PORT: ${{ secrets.EMAIL_SMTP_PORT }}
+        run: python blofin_live_trader.py --summary-12h
