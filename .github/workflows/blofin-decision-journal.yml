@@ -1,0 +1,71 @@
+name: BloFin 15m decision journal
+
+on:
+  workflow_dispatch:
+    inputs:
+      continuation:
+        description: "Internal continuation run"
+        required: false
+        default: "false"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/blofin-journal-trigger"
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  journal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Keep 15m decision journal
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CONTINUATION: ${{ inputs.continuation || 'false' }}
+        run: |
+          set -u
+
+          save_journal () {
+            python blofin_alert_15m.py > /tmp/blofin-journal-scan.txt || return 0
+
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add blofin_decision_journal
+
+            if git diff --cached --quiet; then
+              return
+            fi
+
+            git commit -m "Update BloFin 15m decision journal [skip ci]" || true
+            git pull --rebase origin main || true
+            git push origin HEAD:main || true
+          }
+
+          if [ "$CONTINUATION" != "true" ]; then
+            save_journal
+          fi
+
+          for i in $(seq 1 20); do
+            NOW=$(date +%s)
+            NEXT=$(( ((NOW / 900) + 1) * 900 + 5 ))
+            WAIT=$(( NEXT - NOW ))
+            echo "Waiting $WAIT seconds for next 15m close"
+            sleep "$WAIT"
+            save_journal
+          done
+
+          gh workflow run blofin-decision-journal.yml \
+            --repo "${{ github.repository }}" \
+            -f continuation=true || true
