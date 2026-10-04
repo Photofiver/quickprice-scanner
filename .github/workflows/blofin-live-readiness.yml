@@ -1,4 +1,4 @@
-name: BloFin live readiness check
+name: BloFin LIVE trader
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  readiness:
+  live:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,5 +21,9 @@ jobs:
       - name: Syntax check
         run: python -m py_compile blofin_alert_15m.py blofin_live_trader.py
 
-      - name: Build exact live order plan without sending an order
+      - name: Run BloFin LIVE trader
+        env:
+          BLOFIN_API_KEY: ${{ secrets.BLOFIN_API_KEY }}
+          BLOFIN_SECRET_KEY: ${{ secrets.BLOFIN_SECRET_KEY }}
+          BLOFIN_PASSPHRASE: ${{ secrets.BLOFIN_PASSPHRASE }}
         run: python blofin_live_trader.py
