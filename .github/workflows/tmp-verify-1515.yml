@@ -1,0 +1,23 @@
+name: Verify 15m scan
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "tmp_verify_1515.py"
+      - ".github/workflows/tmp-verify-1515.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python tmp_verify_1515.py
