@@ -146,6 +146,17 @@ def main():
                 lines.append("  ZA: " + ("; ".join(pros) if pros else "brak"))
                 lines.append("  PRZECIW: " + ("; ".join(cons) if cons else "brak"))
 
+                oc = x.get("one_candle_outcome") or {}
+                if oc:
+                    lines.append(
+                        "  PO 1 ŚWIECY 15m: "
+                        f"close {oc.get('close_pnl_pct_gross')}% | "
+                        f"max+ {oc.get('max_favorable_excursion_pct')}% | "
+                        f"max- {oc.get('max_adverse_excursion_pct')}% | "
+                        f"TP0.5={oc.get('tp_0_5_hit')} | SL0.5={oc.get('sl_0_5_hit')} | "
+                        f"{oc.get('tp_sl_0_5_result')} | bez prowizji"
+                    )
+
                 obs = x.get("indicators_observed") or {}
                 if obs:
                     rsi = obs.get("rsi14") or {}
