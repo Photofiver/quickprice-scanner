@@ -1,0 +1,42 @@
+name: BloFin paper trader test
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/blofin-paper-test-trigger"
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run PAPER ONLY
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python blofin_paper_trader.py > paper.md
+          {
+            echo "@Photofiver"
+            echo
+            cat paper.md
+          } > notification.md
+          gh issue comment 2 --repo "${{ github.repository }}" --body-file notification.md
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add blofin_paper_state.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Update paper trading state [skip ci]"
+            git pull --rebase origin main || true
+            git push origin HEAD:main || true
+          fi
