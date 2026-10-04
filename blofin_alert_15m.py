@@ -332,6 +332,14 @@ def main():
     minute = (now_uk.minute // 15) * 15
     closed_at = now_uk.replace(minute=minute, second=0, microsecond=0)
 
+    snapshot = {
+        "closed_at_uk": closed_at.isoformat(),
+        "long": longs[0] if longs else None,
+        "short": shorts[0] if shorts else None,
+    }
+    with open("blofin_scan_signal.json", "w", encoding="utf-8") as f:
+        json.dump(snapshot, f, ensure_ascii=False, indent=2)
+
     print(f"## ŚWIECA 15m ZAMKNIĘTA — {closed_at:%H:%M} UK")
     print()
 
