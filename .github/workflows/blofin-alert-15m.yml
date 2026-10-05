@@ -2,106 +2,13 @@ name: BloFin 15m phone alert
 
 on:
   workflow_dispatch:
-    inputs:
-      continuation:
-        description: "Internal continuation run"
-        required: false
-        default: "false"
-  push:
-    branches:
-      - main
-    paths:
-      - ".github/blofin-alert-trigger"
 
 permissions:
-  contents: write
-  issues: write
-  actions: write
+  contents: read
 
 jobs:
-  scan:
+  disabled:
+    if: ${{ false }}
     runs-on: ubuntu-latest
-    timeout-minutes: 330
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Run continuous exact-close scanner + paper trader
-        env:
-          GH_TOKEN: ${{ github.token }}
-          CONTINUATION: ${{ inputs.continuation || 'false' }}
-        run: |
-          set -u
-
-          persist_paper_state () {
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-            if [ -f blofin_paper_state.json ]; then
-              git add blofin_paper_state.json
-            fi
-
-            if git diff --cached --quiet; then
-              return
-            fi
-
-            git commit -m "Update 15m decision journal [skip ci]" || true
-            git pull --rebase origin main || true
-            git push origin HEAD:main || true
-          }
-
-          post_scan () {
-            if python blofin_alert_15m.py > scan.md; then
-              python blofin_paper_trader.py > paper.md || {
-                echo "# PAPER TRADING" > paper.md
-                echo >> paper.md
-                echo "Błąd symulacji — **nie wykonano żadnego prawdziwego zlecenia**." >> paper.md
-              }
-
-              {
-                echo "@Photofiver"
-                echo
-                cat scan.md
-                echo
-                echo "---"
-                echo
-                cat paper.md
-              } > notification.md
-
-              gh issue comment 2 --repo "${{ github.repository }}" --body-file notification.md || true
-              persist_paper_state
-            else
-              {
-                echo "@Photofiver"
-                echo
-                echo "## BŁĄD SKANU 15m"
-                echo
-                echo "Skan nie wykonał się poprawnie. Kolejna próba nastąpi przy następnym zamknięciu świecy."
-                echo
-                echo "**Paper trader nie składa prawdziwych zleceń.**"
-              } > notification.md
-              gh issue comment 2 --repo "${{ github.repository }}" --body-file notification.md || true
-            fi
-          }
-
-          if [ "$CONTINUATION" != "true" ]; then
-            post_scan
-          fi
-
-          for i in $(seq 1 20); do
-            NOW=$(date +%s)
-            NEXT=$(( ((NOW / 900) + 1) * 900 + 3 ))
-            WAIT=$(( NEXT - NOW ))
-            echo "Waiting $WAIT seconds for the next 15m candle close"
-            sleep "$WAIT"
-            post_scan
-          done
-
-          gh workflow run blofin-alert-15m.yml \
-            --repo "${{ github.repository }}" \
-            -f continuation=true || true
+      - run: echo "BloFin 15m phone alert is disabled"
