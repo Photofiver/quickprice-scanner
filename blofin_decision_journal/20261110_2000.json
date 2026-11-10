@@ -1,0 +1,1179 @@
+{
+  "closed_at_ms": 1794340800000,
+  "closed_at_uk": "2026-11-10T20:00:00+00:00",
+  "top10_market": [
+    {
+      "inst": "INIT-USDT",
+      "last": 0.275,
+      "change24": 67.06153939614848
+    },
+    {
+      "inst": "ONE-USDT",
+      "last": 0.0017922,
+      "change24": 20.93117408906884
+    },
+    {
+      "inst": "MERL-USDT",
+      "last": 0.03577,
+      "change24": 8.59137826350942
+    },
+    {
+      "inst": "GRAM-USDT",
+      "last": 1.102,
+      "change24": 6.679574056147164
+    },
+    {
+      "inst": "QNTX-USDT",
+      "last": 42.65,
+      "change24": 5.831265508684869
+    },
+    {
+      "inst": "HOT-USDT",
+      "last": 0.0004501,
+      "change24": 5.459231490159322
+    },
+    {
+      "inst": "CYBER-USDT",
+      "last": 0.2811,
+      "change24": 5.241482590789981
+    },
+    {
+      "inst": "TA-USDT",
+      "last": 0.10634,
+      "change24": 4.861453505571456
+    },
+    {
+      "inst": "NIGHT-USDT",
+      "last": 0.04144,
+      "change24": 4.620045443069931
+    },
+    {
+      "inst": "NG-USDT",
+      "last": 3.518,
+      "change24": 4.577883472057076
+    }
+  ],
+  "considered": [
+    {
+      "instrument": "INIT-USDT",
+      "change24_pct": 67.06153939614848,
+      "decision": "BRAK SYGNAŁU KIERUNKOWEGO",
+      "pros": [],
+      "cons": [
+        "brak pełnego sygnału kierunkowego po filtrze Stochastic + momentum"
+      ],
+      "analysis": null,
+      "indicators_observed": {
+        "bar_time": 1794339900000,
+        "price": 0.27588,
+        "candle": {
+          "open": 0.28052,
+          "high": 0.28052,
+          "low": 0.275,
+          "close": 0.27588,
+          "color": "RED"
+        },
+        "volume": {
+          "value": 6934.0,
+          "ma20": 18115.0,
+          "vs_ma20": "BELOW"
+        },
+        "rsi14": {
+          "value": 59.58731239866647,
+          "zone": "NEUTRAL",
+          "ma9": 66.27832133037812,
+          "vs_ma9": "BELOW"
+        },
+        "macd_12_26_9": {
+          "line": 0.014608089191255058,
+          "signal": 0.015578089070417613,
+          "histogram": -0.0009699998791625544,
+          "position": "BEARISH",
+          "histogram_trend": "FALLING"
+        },
+        "stochastic_8_3": {
+          "k": 20.584652862362947,
+          "d": 40.81983722774493,
+          "position": "K_BELOW_D",
+          "zone": "NEUTRAL"
+        },
+        "adx14": {
+          "value": 38.83340533673202,
+          "strength": "STRONG"
+        },
+        "obv": {
+          "value": 311409.0,
+          "trend_5": "RISING"
+        },
+        "ema200": {
+          "value": 0.1865390458958281,
+          "price_position": "ABOVE"
+        },
+        "bollinger_20_2": {
+          "lower": 0.2391928624053029,
+          "mid": 0.268133,
+          "upper": 0.2970731375946971,
+          "price_position": "INSIDE"
+        },
+        "donchian20": {
+          "lower": 0.23134,
+          "upper": 0.30196,
+          "price_position": "INSIDE"
+        },
+        "atr14": {
+          "value": 0.015339937296625897,
+          "pct_of_price": 5.5603658462468815
+        },
+        "pivot_daily": {
+          "day_utc": "2026-11-09",
+          "p": 0.17009,
+          "r1": 0.22082999999999997,
+          "s1": 0.13629,
+          "r2": 0.25462999999999997,
+          "s2": 0.08555,
+          "price_position": "ABOVE_R1"
+        },
+        "cvd_proxy": {
+          "value": 338347.0,
+          "trend_5": "RISING",
+          "note": "proxy z kierunku świecy 15m, nie prawdziwy trade-side CVD"
+        },
+        "support_resistance": {
+          "support": 0.24837,
+          "support_touches": 1,
+          "resistance": 0.285,
+          "resistance_touches": 1
+        },
+        "change8_pct": 1.0549450549450556,
+        "used_for_entry_decision": false
+      }
+    },
+    {
+      "instrument": "ONE-USDT",
+      "change24_pct": 20.93117408906884,
+      "decision": "NIE WCHODZIĆ",
+      "pros": [
+        "Stochastic potwierdza LONG (K=75.03, D=74.51)",
+        "momentum 8 świec zgodny z kierunkiem (1.951%)",
+        "cel S/R wystarczająco daleko (3.02% >= 1.0%)",
+        "wystarczająca próba historyczna (48 rozstrzygniętych)"
+      ],
+      "cons": [
+        "skuteczność 27.1% < 65%"
+      ],
+      "analysis": {
+        "inst": "ONE-USDT",
+        "direction": "LONG",
+        "bar_time": 1794339900000,
+        "open": 0.001779,
+        "high": 0.0017991,
+        "low": 0.0017736,
+        "close": 0.0017922,
+        "volume": 89226.0,
+        "stoch_k_8": 75.03121098626733,
+        "stoch_d_3": 74.514967260852,
+        "atr14": 4.157297573006052e-05,
+        "change8_pct": 1.9511917628989295,
+        "support": 0.0017909,
+        "support_touches": 1,
+        "resistance": 0.00184635,
+        "resistance_touches": 2,
+        "k": 75.03121098626733,
+        "d": 74.514967260852,
+        "change8": 1.9511917628989295,
+        "target_price": 0.00184635,
+        "target_pct": 3.021426180113826,
+        "hit_rate": 27.083333333333332,
+        "wins": 13,
+        "losses": 35,
+        "decided": 48,
+        "passed": false,
+        "reasons": [
+          "skuteczność 27.1% < 65%"
+        ],
+        "change24": 20.93117408906884
+      },
+      "indicators_observed": {
+        "bar_time": 1794339900000,
+        "price": 0.0017922,
+        "candle": {
+          "open": 0.001779,
+          "high": 0.0017991,
+          "low": 0.0017736,
+          "close": 0.0017922,
+          "color": "GREEN"
+        },
+        "volume": {
+          "value": 89226.0,
+          "ma20": 5352980.4,
+          "vs_ma20": "BELOW"
+        },
+        "rsi14": {
+          "value": 53.71534519721333,
+          "zone": "NEUTRAL",
+          "ma9": 51.056050901386314,
+          "vs_ma9": "ABOVE"
+        },
+        "macd_12_26_9": {
+          "line": 6.1795791739018e-06,
+          "signal": 5.032895998155162e-06,
+          "histogram": 1.1466831757466384e-06,
+          "position": "BULLISH",
+          "histogram_trend": "RISING"
+        },
+        "stochastic_8_3": {
+          "k": 75.03121098626733,
+          "d": 74.514967260852,
+          "position": "K_ABOVE_D",
+          "zone": "NEUTRAL"
+        },
+        "adx14": {
+          "value": 14.168202062440821,
+          "strength": "WEAK"
+        },
+        "obv": {
+          "value": -416059656.0,
+          "trend_5": "FALLING"
+        },
+        "ema200": {
+          "value": 0.0016651614160548699,
+          "price_position": "ABOVE"
+        },
+        "bollinger_20_2": {
+          "lower": 0.0017015000156238534,
+          "mid": 0.0017695050000000004,
+          "upper": 0.0018375099843761474,
+          "price_position": "INSIDE"
+        },
+        "donchian20": {
+          "lower": 0.0017,
+          "upper": 0.0018497,
+          "price_position": "INSIDE"
+        },
+        "atr14": {
+          "value": 4.157297573006052e-05,
+          "pct_of_price": 2.319661629843796
+        },
+        "pivot_daily": {
+          "day_utc": "2026-11-09",
+          "p": 0.0015550333333333333,
+          "r1": 0.0016634666666666667,
+          "s1": 0.0013502666666666667,
+          "r2": 0.0018682333333333333,
+          "s2": 0.0012418333333333333,
+          "price_position": "ABOVE_R1"
+        },
+        "cvd_proxy": {
+          "value": -438029014.0,
+          "trend_5": "FALLING",
+          "note": "proxy z kierunku świecy 15m, nie prawdziwy trade-side CVD"
+        },
+        "support_resistance": {
+          "support": 0.0017909,
+          "support_touches": 1,
+          "resistance": 0.00184635,
+          "resistance_touches": 2
+        },
+        "change8_pct": 1.9511917628989295,
+        "used_for_entry_decision": false
+      }
+    },
+    {
+      "instrument": "MERL-USDT",
+      "change24_pct": 8.59137826350942,
+      "decision": "BRAK SYGNAŁU KIERUNKOWEGO",
+      "pros": [],
+      "cons": [
+        "brak pełnego sygnału kierunkowego po filtrze Stochastic + momentum"
+      ],
+      "analysis": null,
+      "indicators_observed": {
+        "bar_time": 1794339900000,
+        "price": 0.03599,
+        "candle": {
+          "open": 0.03842,
+          "high": 0.03842,
+          "low": 0.03592,
+          "close": 0.03599,
+          "color": "RED"
+        },
+        "volume": {
+          "value": 400751.0,
+          "ma20": 63818.65,
+          "vs_ma20": "ABOVE"
+        },
+        "rsi14": {
+          "value": 67.36100948047056,
+          "zone": "NEUTRAL",
+          "ma9": 62.295674259162446,
+          "vs_ma9": "ABOVE"
+        },
+        "macd_12_26_9": {
+          "line": 0.001042843677067605,
+          "signal": 0.00027914326624819795,
+          "histogram": 0.0007637004108194071,
+          "position": "BULLISH",
+          "histogram_trend": "FALLING"
+        },
+        "stochastic_8_3": {
+          "k": 68.12339331619542,
+          "d": 89.16268976698257,
+          "position": "K_BELOW_D",
+          "zone": "NEUTRAL"
+        },
+        "adx14": {
+          "value": 39.9384776417623,
+          "strength": "STRONG"
+        },
+        "obv": {
+          "value": 81731.0,
+          "trend_5": "FALLING"
+        },
+        "ema200": {
+          "value": 0.031870969850368726,
+          "price_position": "ABOVE"
+        },
+        "bollinger_20_2": {
+          "lower": 0.027398144254417365,
+          "mid": 0.031903999999999995,
+          "upper": 0.03640985574558263,
+          "price_position": "INSIDE"
+        },
+        "donchian20": {
+          "lower": 0.0297,
+          "upper": 0.03847,
+          "price_position": "INSIDE"
+        },
+        "atr14": {
+          "value": 0.0008579772606996352,
+          "pct_of_price": 2.383932372046777
+        },
+        "pivot_daily": {
+          "day_utc": "2026-11-09",
+          "p": 0.03341666666666667,
+          "r1": 0.035793333333333344,
+          "s1": 0.030463333333333342,
+          "r2": 0.038746666666666665,
+          "s2": 0.028086666666666673,
+          "price_position": "ABOVE_R1"
+        },
+        "cvd_proxy": {
+          "value": 235917.0,
+          "trend_5": "FALLING",
+          "note": "proxy z kierunku świecy 15m, nie prawdziwy trade-side CVD"
+        },
+        "support_resistance": {
+          "support": 0.0327,
+          "support_touches": 1,
+          "resistance": 0.03637,
+          "resistance_touches": 1
+        },
+        "change8_pct": 17.26946888237211,
+        "used_for_entry_decision": false
+      }
+    },
+    {
+      "instrument": "GRAM-USDT",
+      "change24_pct": 6.679574056147164,
+      "decision": "BRAK SYGNAŁU KIERUNKOWEGO",
+      "pros": [],
+      "cons": [
+        "brak pełnego sygnału kierunkowego po filtrze Stochastic + momentum"
+      ],
+      "analysis": null,
+      "indicators_observed": {
+        "bar_time": 1794339900000,
+        "price": 1.102,
+        "candle": {
+          "open": 1.104,
+          "high": 1.106,
+          "low": 1.102,
+          "close": 1.102,
+          "color": "RED"
+        },
+        "volume": {
+          "value": 3701.0,
+          "ma20": 1960.05,
+          "vs_ma20": "ABOVE"
+        },
+        "rsi14": {
+          "value": 51.2333992879328,
+          "zone": "NEUTRAL",
+          "ma9": 54.020855470130044,
+          "vs_ma9": "BELOW"
+        },
+        "macd_12_26_9": {
+          "line": 0.0028478614803517655,
+          "signal": 0.003990474750041184,
+          "histogram": -0.0011426132696894182,
+          "position": "BEARISH",
+          "histogram_trend": "FALLING"
+        },
+        "stochastic_8_3": {
+          "k": 40.90909090909141,
+          "d": 30.30303030303064,
+          "position": "K_ABOVE_D",
+          "zone": "NEUTRAL"
+        },
+        "adx14": {
+          "value": 16.24326642635015,
+          "strength": "WEAK"
+        },
+        "obv": {
+          "value": -277478.0,
+          "trend_5": "FALLING"
+        },
+        "ema200": {
+          "value": 1.0690312422716348,
+          "price_position": "ABOVE"
+        },
+        "bollinger_20_2": {
+          "lower": 1.0881516892855976,
+          "mid": 1.10295,
+          "upper": 1.1177483107144026,
+          "price_position": "INSIDE"
+        },
+        "donchian20": {
+          "lower": 1.08,
+          "upper": 1.116,
+          "price_position": "INSIDE"
+        },
+        "atr14": {
+          "value": 0.009265270563753373,
+          "pct_of_price": 0.8407686536981281
+        },
+        "pivot_daily": {
+          "day_utc": "2026-11-09",
+          "p": 1.0343333333333333,
+          "r1": 1.0766666666666667,
+          "s1": 0.9956666666666667,
+          "r2": 1.1153333333333333,
+          "s2": 0.9533333333333334,
+          "price_position": "ABOVE_R1"
+        },
+        "cvd_proxy": {
+          "value": -263094.0,
+          "trend_5": "FALLING",
+          "note": "proxy z kierunku świecy 15m, nie prawdziwy trade-side CVD"
+        },
+        "support_resistance": {
+          "support": 1.081,
+          "support_touches": 1,
+          "resistance": 1.1035,
+          "resistance_touches": 2
+        },
+        "change8_pct": -0.8100810081008047,
+        "used_for_entry_decision": false
+      }
+    },
+    {
+      "instrument": "QNTX-USDT",
+      "change24_pct": 5.831265508684869,
+      "decision": "NIE WCHODZIĆ",
+      "pros": [
+        "Stochastic potwierdza SHORT (K=12.70, D=41.68)",
+        "momentum 8 świec zgodny z kierunkiem (-0.419%)",
+        "cel S/R wystarczająco daleko (1.94% >= 1.0%)",
+        "wystarczająca próba historyczna (44 rozstrzygniętych)"
+      ],
+      "cons": [
+        "skuteczność 40.9% < 65%"
+      ],
+      "analysis": {
+        "inst": "QNTX-USDT",
+        "direction": "SHORT",
+        "bar_time": 1794339900000,
+        "open": 42.76,
+        "high": 42.85,
+        "low": 42.65,
+        "close": 42.73,
+        "volume": 100.0,
+        "stoch_k_8": 12.698412698412376,
+        "stoch_d_3": 41.68294346664155,
+        "atr14": 0.4329722759642354,
+        "change8_pct": -0.41948263807970454,
+        "support": 41.9,
+        "support_touches": 1,
+        "resistance": 43.7,
+        "resistance_touches": 1,
+        "k": 12.698412698412376,
+        "d": 41.68294346664155,
+        "change8": -0.41948263807970454,
+        "target_price": 41.9,
+        "target_pct": 1.9424292066463806,
+        "hit_rate": 40.90909090909091,
+        "wins": 18,
+        "losses": 26,
+        "decided": 44,
+        "passed": false,
+        "reasons": [
+          "skuteczność 40.9% < 65%"
+        ],
+        "change24": 5.831265508684869
+      },
+      "indicators_observed": {
+        "bar_time": 1794339900000,
+        "price": 42.73,
+        "candle": {
+          "open": 42.76,
+          "high": 42.85,
+          "low": 42.65,
+          "close": 42.73,
+          "color": "RED"
+        },
+        "volume": {
+          "value": 100.0,
+          "ma20": 288.8,
+          "vs_ma20": "BELOW"
+        },
+        "rsi14": {
+          "value": 58.43527804458243,
+          "zone": "NEUTRAL",
+          "ma9": 62.98567775791652,
+          "vs_ma9": "BELOW"
+        },
+        "macd_12_26_9": {
+          "line": 0.5853561101637439,
+          "signal": 0.6684563274695451,
+          "histogram": -0.0831002173058012,
+          "position": "BEARISH",
+          "histogram_trend": "FALLING"
+        },
+        "stochastic_8_3": {
+          "k": 12.698412698412376,
+          "d": 41.68294346664155,
+          "position": "K_BELOW_D",
+          "zone": "OVERSOLD"
+        },
+        "adx14": {
+          "value": 35.70481902820443,
+          "strength": "STRONG"
+        },
+        "obv": {
+          "value": 42161.0,
+          "trend_5": "FALLING"
+        },
+        "ema200": {
+          "value": 39.491170164209095,
+          "price_position": "ABOVE"
+        },
+        "bollinger_20_2": {
+          "lower": 41.62193711108947,
+          "mid": 42.6615,
+          "upper": 43.70106288891052,
+          "price_position": "INSIDE"
+        },
+        "donchian20": {
+          "lower": 40.9,
+          "upper": 43.7,
+          "price_position": "INSIDE"
+        },
+        "atr14": {
+          "value": 0.4329722759642354,
+          "pct_of_price": 1.013274692169987
+        },
+        "pivot_daily": {
+          "day_utc": "2026-11-09",
+          "p": 39.09333333333334,
+          "r1": 41.41666666666668,
+          "s1": 37.62666666666668,
+          "r2": 42.88333333333334,
+          "s2": 35.30333333333334,
+          "price_position": "ABOVE_R1"
+        },
+        "cvd_proxy": {
+          "value": 42287.0,
+          "trend_5": "FALLING",
+          "note": "proxy z kierunku świecy 15m, nie prawdziwy trade-side CVD"
+        },
+        "support_resistance": {
+          "support": 41.9,
+          "support_touches": 1,
+          "resistance": 43.7,
+          "resistance_touches": 1
+        },
+        "change8_pct": -0.41948263807970454,
+        "used_for_entry_decision": false
+      }
+    },
+    {
+      "instrument": "HOT-USDT",
+      "change24_pct": 5.459231490159322,
+      "decision": "NIE WCHODZIĆ",
+      "pros": [
+        "Stochastic potwierdza LONG (K=90.16, D=63.05)",
+        "momentum 8 świec zgodny z kierunkiem (2.553%)",
+        "cel S/R wystarczająco daleko (2.02% >= 1.0%)",
+        "wystarczająca próba historyczna (140 rozstrzygniętych)"
+      ],
+      "cons": [
+        "skuteczność 40.7% < 65%"
+      ],
+      "analysis": {
+        "inst": "HOT-USDT",
+        "direction": "LONG",
+        "bar_time": 1794339900000,
+        "open": 0.0004372,
+        "high": 0.0004517,
+        "low": 0.0004501,
+        "close": 0.0004499,
+        "volume": 100418.0,
+        "stoch_k_8": 90.16393442622955,
+        "stoch_d_3": 63.047842087654736,
+        "atr14": 5.401565750071166e-06,
+        "change8_pct": 2.5529974925917465,
+        "support": 0.00044085,
+        "support_touches": 2,
+        "resistance": 0.000459,
+        "resistance_touches": 2,
+        "k": 90.16393442622955,
+        "d": 63.047842087654736,
+        "change8": 2.5529974925917465,
+        "target_price": 0.000459,
+        "target_pct": 2.022671704823295,
+        "hit_rate": 40.714285714285715,
+        "wins": 57,
+        "losses": 83,
+        "decided": 140,
+        "passed": false,
+        "reasons": [
+          "skuteczność 40.7% < 65%"
+        ],
+        "change24": 5.459231490159322
+      },
+      "indicators_observed": {
+        "bar_time": 1794339900000,
+        "price": 0.0004499,
+        "candle": {
+          "open": 0.0004372,
+          "high": 0.0004517,
+          "low": 0.0004501,
+          "close": 0.0004499,
+          "color": "GREEN"
+        },
+        "volume": {
+          "value": 100418.0,
+          "ma20": 167756.6,
+          "vs_ma20": "BELOW"
+        },
+        "rsi14": {
+          "value": 60.15210518139193,
+          "zone": "NEUTRAL",
+          "ma9": 48.93332590544829,
+          "vs_ma9": "ABOVE"
+        },
+        "macd_12_26_9": {
+          "line": -1.9995409420022706e-07,
+          "signal": -9.312307876035295e-07,
+          "histogram": 7.312766934033024e-07,
+          "position": "BULLISH",
+          "histogram_trend": "RISING"
+        },
+        "stochastic_8_3": {
+          "k": 90.16393442622955,
+          "d": 63.047842087654736,
+          "position": "K_ABOVE_D",
+          "zone": "OVERBOUGHT"
+        },
+        "adx14": {
+          "value": 12.156946889837112,
+          "strength": "WEAK"
+        },
+        "obv": {
+          "value": -62690006.0,
+          "trend_5": "RISING"
+        },
+        "ema200": {
+          "value": 0.0004284796565228153,
+          "price_position": "ABOVE"
+        },
+        "bollinger_20_2": {
+          "lower": 0.00043179719117279584,
+          "mid": 0.00043882999999999997,
+          "upper": 0.0004458628088272041,
+          "price_position": "ABOVE_UPPER"
+        },
+        "donchian20": {
+          "lower": 0.000432,
+          "upper": 0.0004517,
+          "price_position": "INSIDE"
+        },
+        "atr14": {
+          "value": 5.401565750071166e-06,
+          "pct_of_price": 1.200614747737534
+        },
+        "pivot_daily": {
+          "day_utc": "2026-11-09",
+          "p": 0.00043753333333333336,
+          "r1": 0.00048136666666666675,
+          "s1": 0.0003931666666666667,
+          "r2": 0.0005257333333333334,
+          "s2": 0.00034933333333333333,
+          "price_position": "P_TO_R1"
+        },
+        "cvd_proxy": {
+          "value": -59339709.0,
+          "trend_5": "RISING",
+          "note": "proxy z kierunku świecy 15m, nie prawdziwy trade-side CVD"
+        },
+        "support_resistance": {
+          "support": 0.00044085,
+          "support_touches": 2,
+          "resistance": 0.000459,
+          "resistance_touches": 2
+        },
+        "change8_pct": 2.5529974925917465,
+        "used_for_entry_decision": false
+      }
+    },
+    {
+      "instrument": "CYBER-USDT",
+      "change24_pct": 5.241482590789981,
+      "decision": "BRAK SYGNAŁU KIERUNKOWEGO",
+      "pros": [],
+      "cons": [
+        "brak pełnego sygnału kierunkowego po filtrze Stochastic + momentum"
+      ],
+      "analysis": null,
+      "indicators_observed": {
+        "bar_time": 1794339900000,
+        "price": 0.2811,
+        "candle": {
+          "open": 0.2827,
+          "high": 0.2846,
+          "low": 0.2811,
+          "close": 0.2811,
+          "color": "RED"
+        },
+        "volume": {
+          "value": 8170.0,
+          "ma20": 66128.0,
+          "vs_ma20": "BELOW"
+        },
+        "rsi14": {
+          "value": 38.44919588515919,
+          "zone": "NEUTRAL",
+          "ma9": 47.993927340937574,
+          "vs_ma9": "BELOW"
+        },
+        "macd_12_26_9": {
+          "line": -0.001597584746498959,
+          "signal": 0.0012716092143503894,
+          "histogram": -0.0028691939608493484,
+          "position": "BEARISH",
+          "histogram_trend": "FALLING"
+        },
+        "stochastic_8_3": {
+          "k": 8.088235294117776,
+          "d": 8.068248758731036,
+          "position": "K_ABOVE_D",
+          "zone": "OVERSOLD"
+        },
+        "adx14": {
+          "value": 25.187806759586355,
+          "strength": "STRONG"
+        },
+        "obv": {
+          "value": -2546959.0,
+          "trend_5": "FALLING"
+        },
+        "ema200": {
+          "value": 0.278655854723436,
+          "price_position": "ABOVE"
+        },
+        "bollinger_20_2": {
+          "lower": 0.2832183123478719,
+          "mid": 0.296455,
+          "upper": 0.3096916876521281,
+          "price_position": "BELOW_LOWER"
+        },
+        "donchian20": {
+          "lower": 0.2789,
+          "upper": 0.3061,
+          "price_position": "INSIDE"
+        },
+        "atr14": {
+          "value": 0.006864244347314283,
+          "pct_of_price": 2.4419225710829893
+        },
+        "pivot_daily": {
+          "day_utc": "2026-11-09",
+          "p": 0.26339999999999997,
+          "r1": 0.27059999999999995,
+          "s1": 0.25189999999999996,
+          "r2": 0.28209999999999996,
+          "s2": 0.24469999999999997,
+          "price_position": "ABOVE_R1"
+        },
+        "cvd_proxy": {
+          "value": -2222611.0,
+          "trend_5": "FALLING",
+          "note": "proxy z kierunku świecy 15m, nie prawdziwy trade-side CVD"
+        },
+        "support_resistance": {
+          "support": 0.2789,
+          "support_touches": 1,
+          "resistance": 0.2915,
+          "resistance_touches": 1
+        },
+        "change8_pct": -5.797587131367288,
+        "used_for_entry_decision": false
+      }
+    },
+    {
+      "instrument": "TA-USDT",
+      "change24_pct": 4.861453505571456,
+      "decision": "NIE WCHODZIĆ",
+      "pros": [
+        "Stochastic potwierdza LONG (K=72.91, D=70.42)",
+        "momentum 8 świec zgodny z kierunkiem (1.373%)",
+        "cel S/R wystarczająco daleko (1.11% >= 1.0%)",
+        "wystarczająca próba historyczna (61 rozstrzygniętych)"
+      ],
+      "cons": [
+        "skuteczność 52.5% < 65%"
+      ],
+      "analysis": {
+        "inst": "TA-USDT",
+        "direction": "LONG",
+        "bar_time": 1794339900000,
+        "open": 0.10608,
+        "high": 0.10634,
+        "low": 0.10622,
+        "close": 0.10634,
+        "volume": 121.0,
+        "stoch_k_8": 72.9064039408869,
+        "stoch_d_3": 70.41857128064039,
+        "atr14": 0.0010532828660154872,
+        "change8_pct": 1.3727359389895222,
+        "support": 0.10526,
+        "support_touches": 1,
+        "resistance": 0.10752,
+        "resistance_touches": 2,
+        "k": 72.9064039408869,
+        "d": 70.41857128064039,
+        "change8": 1.3727359389895222,
+        "target_price": 0.10752,
+        "target_pct": 1.109648297912357,
+        "hit_rate": 52.459016393442624,
+        "wins": 32,
+        "losses": 29,
+        "decided": 61,
+        "passed": false,
+        "reasons": [
+          "skuteczność 52.5% < 65%"
+        ],
+        "change24": 4.861453505571456
+      },
+      "indicators_observed": {
+        "bar_time": 1794339900000,
+        "price": 0.10634,
+        "candle": {
+          "open": 0.10608,
+          "high": 0.10634,
+          "low": 0.10622,
+          "close": 0.10634,
+          "color": "GREEN"
+        },
+        "volume": {
+          "value": 121.0,
+          "ma20": 384.65,
+          "vs_ma20": "BELOW"
+        },
+        "rsi14": {
+          "value": 68.04118466066107,
+          "zone": "NEUTRAL",
+          "ma9": 67.03938030869523,
+          "vs_ma9": "ABOVE"
+        },
+        "macd_12_26_9": {
+          "line": 0.0014004354593308288,
+          "signal": 0.0010278581345328035,
+          "histogram": 0.0003725773247980253,
+          "position": "BULLISH",
+          "histogram_trend": "FALLING"
+        },
+        "stochastic_8_3": {
+          "k": 72.9064039408869,
+          "d": 70.41857128064039,
+          "position": "K_ABOVE_D",
+          "zone": "NEUTRAL"
+        },
+        "adx14": {
+          "value": 29.71236935041228,
+          "strength": "STRONG"
+        },
+        "obv": {
+          "value": -6286.0,
+          "trend_5": "RISING"
+        },
+        "ema200": {
+          "value": 0.1009609424304038,
+          "price_position": "ABOVE"
+        },
+        "bollinger_20_2": {
+          "lower": 0.09826340797492399,
+          "mid": 0.103239,
+          "upper": 0.10821459202507601,
+          "price_position": "INSIDE"
+        },
+        "donchian20": {
+          "lower": 0.09821,
+          "upper": 0.10744,
+          "price_position": "INSIDE"
+        },
+        "atr14": {
+          "value": 0.0010532828660154872,
+          "pct_of_price": 0.9904860504189271
+        },
+        "pivot_daily": {
+          "day_utc": "2026-11-09",
+          "p": 0.10044333333333333,
+          "r1": 0.10826666666666666,
+          "s1": 0.09328666666666666,
+          "r2": 0.11542333333333334,
+          "s2": 0.08546333333333332,
+          "price_position": "P_TO_R1"
+        },
+        "cvd_proxy": {
+          "value": -13509.0,
+          "trend_5": "RISING",
+          "note": "proxy z kierunku świecy 15m, nie prawdziwy trade-side CVD"
+        },
+        "support_resistance": {
+          "support": 0.10526,
+          "support_touches": 1,
+          "resistance": 0.10752,
+          "resistance_touches": 2
+        },
+        "change8_pct": 1.3727359389895222,
+        "used_for_entry_decision": false
+      }
+    },
+    {
+      "instrument": "NIGHT-USDT",
+      "change24_pct": 4.620045443069931,
+      "decision": "NIE WCHODZIĆ",
+      "pros": [
+        "Stochastic potwierdza SHORT (K=19.35, D=27.26)",
+        "momentum 8 świec zgodny z kierunkiem (-0.408%)",
+        "cel S/R wystarczająco daleko (1.62% >= 1.0%)",
+        "wystarczająca próba historyczna (63 rozstrzygniętych)"
+      ],
+      "cons": [
+        "skuteczność 31.7% < 65%"
+      ],
+      "analysis": {
+        "inst": "NIGHT-USDT",
+        "direction": "SHORT",
+        "bar_time": 1794339900000,
+        "open": 0.04132,
+        "high": 0.04155,
+        "low": 0.04144,
+        "close": 0.04147,
+        "volume": 98.0,
+        "stoch_k_8": 19.35483870967737,
+        "stoch_d_3": 27.261058712671552,
+        "atr14": 0.00036362541726218993,
+        "change8_pct": -0.40826128722383226,
+        "support": 0.0408,
+        "support_touches": 1,
+        "resistance": 0.04222,
+        "resistance_touches": 1,
+        "k": 19.35483870967737,
+        "d": 27.261058712671552,
+        "change8": -0.40826128722383226,
+        "target_price": 0.0408,
+        "target_pct": 1.6156257535567808,
+        "hit_rate": 31.746031746031747,
+        "wins": 20,
+        "losses": 43,
+        "decided": 63,
+        "passed": false,
+        "reasons": [
+          "skuteczność 31.7% < 65%"
+        ],
+        "change24": 4.620045443069931
+      },
+      "indicators_observed": {
+        "bar_time": 1794339900000,
+        "price": 0.04147,
+        "candle": {
+          "open": 0.04132,
+          "high": 0.04155,
+          "low": 0.04144,
+          "close": 0.04147,
+          "color": "GREEN"
+        },
+        "volume": {
+          "value": 98.0,
+          "ma20": 12515.05,
+          "vs_ma20": "BELOW"
+        },
+        "rsi14": {
+          "value": 45.29024685820229,
+          "zone": "NEUTRAL",
+          "ma9": 47.17941913383875,
+          "vs_ma9": "BELOW"
+        },
+        "macd_12_26_9": {
+          "line": -0.00017088696324891323,
+          "signal": -0.00019307402213649506,
+          "histogram": 2.2187058887581832e-05,
+          "position": "BULLISH",
+          "histogram_trend": "FALLING"
+        },
+        "stochastic_8_3": {
+          "k": 19.35483870967737,
+          "d": 27.261058712671552,
+          "position": "K_BELOW_D",
+          "zone": "OVERSOLD"
+        },
+        "adx14": {
+          "value": 16.939409900446435,
+          "strength": "WEAK"
+        },
+        "obv": {
+          "value": -766214.0,
+          "trend_5": "FALLING"
+        },
+        "ema200": {
+          "value": 0.04099669456887794,
+          "price_position": "ABOVE"
+        },
+        "bollinger_20_2": {
+          "lower": 0.040506889113932056,
+          "mid": 0.0415835,
+          "upper": 0.04266011088606795,
+          "price_position": "INSIDE"
+        },
+        "donchian20": {
+          "lower": 0.0408,
+          "upper": 0.04355,
+          "price_position": "INSIDE"
+        },
+        "atr14": {
+          "value": 0.00036362541726218993,
+          "pct_of_price": 0.8768396847412344
+        },
+        "pivot_daily": {
+          "day_utc": "2026-11-09",
+          "p": 0.039586666666666666,
+          "r1": 0.04195333333333333,
+          "s1": 0.03808333333333333,
+          "r2": 0.043456666666666664,
+          "s2": 0.03571666666666667,
+          "price_position": "P_TO_R1"
+        },
+        "cvd_proxy": {
+          "value": -776777.0,
+          "trend_5": "FALLING",
+          "note": "proxy z kierunku świecy 15m, nie prawdziwy trade-side CVD"
+        },
+        "support_resistance": {
+          "support": 0.0408,
+          "support_touches": 1,
+          "resistance": 0.04222,
+          "resistance_touches": 1
+        },
+        "change8_pct": -0.40826128722383226,
+        "used_for_entry_decision": false
+      }
+    },
+    {
+      "instrument": "NG-USDT",
+      "change24_pct": 4.577883472057076,
+      "decision": "BRAK SYGNAŁU KIERUNKOWEGO",
+      "pros": [],
+      "cons": [
+        "brak pełnego sygnału kierunkowego po filtrze Stochastic + momentum"
+      ],
+      "analysis": null,
+      "indicators_observed": {
+        "bar_time": 1794339900000,
+        "price": 3.518,
+        "candle": {
+          "open": 3.525,
+          "high": 3.535,
+          "low": 3.516,
+          "close": 3.518,
+          "color": "RED"
+        },
+        "volume": {
+          "value": 176.0,
+          "ma20": 1137.15,
+          "vs_ma20": "BELOW"
+        },
+        "rsi14": {
+          "value": 64.06824588666602,
+          "zone": "NEUTRAL",
+          "ma9": 63.42977309027895,
+          "vs_ma9": "ABOVE"
+        },
+        "macd_12_26_9": {
+          "line": 0.019894007355630183,
+          "signal": 0.01642929918619249,
+          "histogram": 0.0034647081694376934,
+          "position": "BULLISH",
+          "histogram_trend": "FALLING"
+        },
+        "stochastic_8_3": {
+          "k": 68.51851851851804,
+          "d": 78.06338676985415,
+          "position": "K_BELOW_D",
+          "zone": "NEUTRAL"
+        },
+        "adx14": {
+          "value": 29.427315570185403,
+          "strength": "STRONG"
+        },
+        "obv": {
+          "value": 44221.0,
+          "trend_5": "RISING"
+        },
+        "ema200": {
+          "value": 3.328431654091786,
+          "price_position": "ABOVE"
+        },
+        "bollinger_20_2": {
+          "lower": 3.397899175828567,
+          "mid": 3.4752500000000004,
+          "upper": 3.5526008241714337,
+          "price_position": "INSIDE"
+        },
+        "donchian20": {
+          "lower": 3.389,
+          "upper": 3.535,
+          "price_position": "INSIDE"
+        },
+        "atr14": {
+          "value": 0.01986131367912805,
+          "pct_of_price": 0.5645626401116558
+        },
+        "pivot_daily": {
+          "day_utc": "2026-11-09",
+          "p": 3.279666666666667,
+          "r1": 3.4523333333333337,
+          "s1": 3.177333333333334,
+          "r2": 3.554666666666667,
+          "s2": 3.004666666666667,
+          "price_position": "ABOVE_R1"
+        },
+        "cvd_proxy": {
+          "value": 46256.0,
+          "trend_5": "RISING",
+          "note": "proxy z kierunku świecy 15m, nie prawdziwy trade-side CVD"
+        },
+        "support_resistance": {
+          "support": 3.458,
+          "support_touches": 1,
+          "resistance": 3.525,
+          "resistance_touches": 1
+        },
+        "change8_pct": 0.7445589919816697,
+        "used_for_entry_decision": false
+      }
+    }
+  ],
+  "selected_for_entry": null
+}
